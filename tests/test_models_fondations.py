@@ -1,7 +1,7 @@
 from datetime import date
 
 from app.extensions import db
-from app.models import AnneeScolaire, Classe, ContactParent, Eleve, Matiere, Notice, Trimestre, User
+from app.models import AnneeScolaire, Classe, ContactParent, Controle, Eleve, Matiere, Note, Notice, Trimestre, User
 
 
 def test_annee_scolaire_creation(app):
@@ -117,3 +117,53 @@ def test_notice_avec_matiere(app):
     db.session.commit()
 
     assert notice.matiere_id == matiere.id
+
+
+def test_controle_regroupe_les_notes(app):
+    classe = Classe(nom="6A", annee_scolaire="2025-2026")
+    eleve1 = Eleve(nom="Dupont", prenom="Jean", classe=classe)
+    eleve2 = Eleve(nom="Martin", prenom="Alice", classe=classe)
+    matiere = Matiere(nom="Maths", coefficient=3)
+    user = User(nom="Prof", email="prof2@ecole.test", role="professeur")
+    user.set_password("password123")
+    db.session.add_all([classe, eleve1, eleve2, matiere, user])
+    db.session.commit()
+
+    controle = Controle(
+        matiere=matiere,
+        classe=classe,
+        intitule="Contrôle chapitre 1",
+        date=date(2026, 1, 10),
+        coefficient=2.0,
+        saisi_par=user,
+    )
+    db.session.add(controle)
+    db.session.commit()
+
+    note1 = Note(eleve=eleve1, controle=controle, valeur=15, saisi_par=user)
+    note2 = Note(eleve=eleve2, controle=controle, valeur=9, saisi_par=user)
+    db.session.add_all([note1, note2])
+    db.session.commit()
+
+    assert controle.trimestre_id is None
+    assert {n.id for n in controle.notes} == {note1.id, note2.id}
+    assert note1.controle.intitule == "Contrôle chapitre 1"
+
+
+def test_note_existante_sans_controle_reste_valide(app):
+    """Les Note créées à l'ancienne façon (sans controle_id) continuent de fonctionner."""
+    classe = Classe(nom="6A", annee_scolaire="2025-2026")
+    eleve = Eleve(nom="Dupont", prenom="Jean", classe=classe)
+    matiere = Matiere(nom="Maths", coefficient=3)
+    user = User(nom="Prof", email="prof3@ecole.test", role="professeur")
+    user.set_password("password123")
+    db.session.add_all([classe, eleve, matiere, user])
+    db.session.commit()
+
+    note = Note(
+        eleve=eleve, matiere=matiere, valeur=12, trimestre="T1", saisi_par=user
+    )
+    db.session.add(note)
+    db.session.commit()
+
+    assert note.controle_id is None

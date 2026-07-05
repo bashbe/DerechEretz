@@ -129,15 +129,17 @@ class Note(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     eleve_id = db.Column(db.Integer, db.ForeignKey("eleves.id"), nullable=False)
-    matiere_id = db.Column(db.Integer, db.ForeignKey("matieres.id"), nullable=False)
+    matiere_id = db.Column(db.Integer, db.ForeignKey("matieres.id"), nullable=True)
     valeur = db.Column(db.Float, nullable=False)
-    trimestre = db.Column(db.String(2), nullable=False)
-    date = db.Column(db.Date, nullable=False, default=date.today)
+    trimestre = db.Column(db.String(2), nullable=True)
+    date = db.Column(db.Date, nullable=True, default=date.today)
     saisi_par_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    controle_id = db.Column(db.Integer, db.ForeignKey("controles.id"), nullable=True)
 
     eleve = db.relationship("Eleve", back_populates="notes")
     matiere = db.relationship("Matiere")
     saisi_par = db.relationship("User")
+    controle = db.relationship("Controle", back_populates="notes")
 
 
 class Absence(db.Model):
@@ -272,14 +274,22 @@ class Trimestre(db.Model):
 
 
 class Controle(db.Model):
-    """Placeholder for Phase 1 Fondations - fully implemented in Task 5."""
-
     __tablename__ = "controles"
 
     id = db.Column(db.Integer, primary_key=True)
-    trimestre_id = db.Column(db.Integer, db.ForeignKey("trimestres.id"), nullable=False)
+    matiere_id = db.Column(db.Integer, db.ForeignKey("matieres.id"), nullable=False)
+    classe_id = db.Column(db.Integer, db.ForeignKey("classes.id"), nullable=False)
+    intitule = db.Column(db.String(150), nullable=False)
+    date = db.Column(db.Date, nullable=False, default=date.today)
+    coefficient = db.Column(db.Float, nullable=False, default=1.0)
+    trimestre_id = db.Column(db.Integer, db.ForeignKey("trimestres.id"), nullable=True)
+    saisi_par_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
 
+    matiere = db.relationship("Matiere")
+    classe = db.relationship("Classe")
     trimestre = db.relationship("Trimestre", back_populates="controles")
+    saisi_par = db.relationship("User")
+    notes = db.relationship("Note", back_populates="controle")
 
 
 class ContactParent(db.Model):
