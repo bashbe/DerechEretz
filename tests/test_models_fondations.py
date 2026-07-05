@@ -1,7 +1,10 @@
-from datetime import date
+from datetime import date, time
+
+import pytest
+from sqlalchemy.exc import IntegrityError
 
 from app.extensions import db
-from app.models import AnneeScolaire, Classe, ContactParent, Controle, Eleve, Matiere, Note, Notice, Trimestre, User
+from app.models import AnneeScolaire, Classe, ContactParent, Controle, Eleve, Matiere, Note, Notice, Presence, Trimestre, User
 
 
 def test_annee_scolaire_creation(app):
@@ -167,3 +170,46 @@ def test_note_existante_sans_controle_reste_valide(app):
     db.session.commit()
 
     assert note.controle_id is None
+
+
+def test_presence_creation(app):
+    classe = Classe(nom="6A", annee_scolaire="2025-2026")
+    eleve = Eleve(nom="Dupont", prenom="Jean", classe=classe)
+    user = User(nom="Surveillant", email="surv2@ecole.test", role="surveillant")
+    user.set_password("password123")
+    db.session.add_all([classe, eleve, user])
+    db.session.commit()
+
+    presence = Presence(
+        eleve=eleve,
+        date=date(2026, 1, 12),
+        statut="retard",
+        heure_arrivee=time(8, 15),
+        saisi_par=user,
+    )
+    db.session.add(presence)
+    db.session.commit()
+
+    assert eleve.presences == [presence]
+    assert presence.justifie is False
+
+
+def test_presence_unique_par_eleve_et_date(app):
+    classe = Classe(nom="6A", annee_scolaire="2025-2026")
+    eleve = Eleve(nom="Dupont", prenom="Jean", classe=classe)
+    user = User(nom="Surveillant", email="surv3@ecole.test", role="surveillant")
+    user.set_password("password123")
+    db.session.add_all([classe, eleve, user])
+    db.session.commit()
+
+    db.session.add(
+        Presence(eleve=eleve, date=date(2026, 1, 12), statut="present", saisi_par=user)
+    )
+    db.session.commit()
+
+    db.session.add(
+        Presence(eleve=eleve, date=date(2026, 1, 12), statut="absent", saisi_par=user)
+    )
+    with pytest.raises(IntegrityError):
+        db.session.commit()
+    db.session.rollback()

@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date, datetime, time
 
 from flask_login import UserMixin
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -88,6 +88,9 @@ class Eleve(db.Model):
         "ContactParent", back_populates="eleve", cascade="all, delete-orphan"
     )
     notices = db.relationship("Notice", back_populates="eleve", cascade="all, delete-orphan")
+    presences = db.relationship(
+        "Presence", back_populates="eleve", cascade="all, delete-orphan"
+    )
 
     @property
     def nom_complet(self):
@@ -290,6 +293,25 @@ class Controle(db.Model):
     trimestre = db.relationship("Trimestre", back_populates="controles")
     saisi_par = db.relationship("User")
     notes = db.relationship("Note", back_populates="controle")
+
+
+class Presence(db.Model):
+    __tablename__ = "presences"
+    __table_args__ = (
+        db.UniqueConstraint("eleve_id", "date", name="uq_presence_eleve_date"),
+    )
+
+    id = db.Column(db.Integer, primary_key=True)
+    eleve_id = db.Column(db.Integer, db.ForeignKey("eleves.id"), nullable=False)
+    date = db.Column(db.Date, nullable=False, default=date.today)
+    statut = db.Column(db.String(20), nullable=False)  # 'present', 'absent' ou 'retard'
+    heure_arrivee = db.Column(db.Time, nullable=True)
+    justifie = db.Column(db.Boolean, nullable=False, default=False)
+    motif = db.Column(db.String(255), nullable=True)
+    saisi_par_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+
+    eleve = db.relationship("Eleve", back_populates="presences")
+    saisi_par = db.relationship("User")
 
 
 class ContactParent(db.Model):
