@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Tableau de bord{% endblock %}
+{% block content %}
+<h1 class="h3 mb-4">Tableau de bord — Directeur</h1>
+<div class="row g-3">
+  <div class="col-md-3">
+    <div class="card text-bg-light">
+      <div class="card-body">
+        <h2 class="h6">Élèves inscrits</h2>
+        <p class="display-6 mb-0">{{ nb_eleves }}</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card text-bg-warning">
+      <div class="card-body">
+        <h2 class="h6">Absences injustifiées (total)</h2>
+        <p class="display-6 mb-0">{{ absences_non_justifiees }}</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-body">
+        <h2 class="h6">Cycle de discipline en cours</h2>
+        {% if cycle_actif %}
+          <p class="mb-1">Du {{ cycle_actif.date_debut }} au {{ cycle_actif.date_fin }}</p>
+          <a href="{{ url_for('directeur.discipline_cycles') }}" class="btn btn-sm btn-primary">Gérer / clôturer</a>
+        {% else %}
+          <p class="text-muted mb-1">Aucun cycle actif.</p>
+          <a href="{{ url_for('directeur.discipline_cycles') }}" class="btn btn-sm btn-primary">Créer un cycle</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="mt-4">
+  <h2 class="h5">Accès rapides</h2>
+  <div class="d-flex flex-wrap gap-2">
+    <a href="{{ url_for('directeur.eleves') }}" class="btn btn-outline-secondary">Gérer les élèves</a>
+    <a href="{{ url_for('directeur.classes') }}" class="btn btn-outline-secondary">Gérer les classes</a>
+    <a href="{{ url_for('directeur.matieres') }}" class="btn btn-outline-secondary">Gérer les matières</a>
+    <a href="{{ url_for('directeur.comptes') }}" class="btn btn-outline-secondary">Gérer les comptes</a>
+    <a href="{{ url_for('directeur.bareme') }}" class="btn btn-outline-secondary">Barème infractions</a>
+    <a href="{{ url_for('directeur.rapports') }}" class="btn btn-outline-secondary">Voir les rapports</a>
+  </div>
+</div>
+{% endblock %}

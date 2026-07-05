@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Cycles de discipline{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h3">Cycles de discipline (15 jours)</h1>
+  <form method="post" action="{{ url_for('directeur.cycle_nouveau') }}">
+    <button type="submit" class="btn btn-primary">+ Nouveau cycle</button>
+  </form>
+</div>
+<table class="table table-striped">
+  <thead><tr><th>Début</th><th>Fin</th><th>Statut</th><th></th></tr></thead>
+  <tbody>
+  {% for cycle in cycles %}
+    <tr>
+      <td>{{ cycle.date_debut }}</td>
+      <td>{{ cycle.date_fin }}</td>
+      <td>
+        {% if cycle.est_cloture %}
+          <span class="badge text-bg-secondary">Clôturé le {{ cycle.date_cloture.strftime('%d/%m/%Y') }}</span>
+        {% else %}
+          <span class="badge text-bg-warning">En cours</span>
+        {% endif %}
+      </td>
+      <td class="text-end">
+        {% if not cycle.est_cloture %}
+        <form method="post" action="{{ url_for('directeur.cycle_cloturer', cycle_id=cycle.id) }}"
+              onsubmit="return confirm('Clôturer ce cycle ? Les points de tous les élèves seront figés puis remis à 20, un rapport sera généré.');" class="d-inline">
+          <button type="submit" class="btn btn-sm btn-warning">Clôturer</button>
+        </form>
+        {% endif %}
+      </td>
+    </tr>
+  {% else %}
+    <tr><td colspan="4" class="text-muted">Aucun cycle.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

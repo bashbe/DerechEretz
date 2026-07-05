@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Barème infractions{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h3">Barème des infractions mineures</h1>
+  <a href="{{ url_for('directeur.bareme_nouveau') }}" class="btn btn-primary">+ Nouveau type</a>
+</div>
+<table class="table table-striped">
+  <thead><tr><th>Libellé</th><th>Points déduits</th><th>Statut</th><th></th></tr></thead>
+  <tbody>
+  {% for type_infraction in types_infractions %}
+    <tr>
+      <td>{{ type_infraction.libelle }}</td>
+      <td>-{{ type_infraction.points_deduits }}</td>
+      <td>{% if type_infraction.actif %}<span class="badge text-bg-success">Actif</span>{% else %}<span class="badge text-bg-secondary">Inactif</span>{% endif %}</td>
+      <td class="text-end">
+        <a href="{{ url_for('directeur.bareme_modifier', type_id=type_infraction.id) }}" class="btn btn-sm btn-outline-secondary">Modifier</a>
+      </td>
+    </tr>
+  {% else %}
+    <tr><td colspan="4" class="text-muted">Aucun type d'infraction défini.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

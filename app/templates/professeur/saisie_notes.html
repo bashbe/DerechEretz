@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Saisie des notes{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h3">{{ matiere.nom }} — {{ classe.nom }}</h1>
+  <form method="get" class="d-flex gap-2">
+    <input type="hidden" name="matiere_id" value="{{ matiere.id }}">
+    <input type="hidden" name="classe_id" value="{{ classe.id }}">
+    <select name="trimestre" class="form-select" onchange="this.form.submit()">
+      <option value="T1" {% if trimestre == "T1" %}selected{% endif %}>Trimestre 1</option>
+      <option value="T2" {% if trimestre == "T2" %}selected{% endif %}>Trimestre 2</option>
+      <option value="T3" {% if trimestre == "T3" %}selected{% endif %}>Trimestre 3</option>
+    </select>
+  </form>
+</div>
+
+<p class="text-muted small">Ajoutez une nouvelle note par élève ci-dessous, puis validez une seule fois pour toute la classe. Utilisez Tab/Entrée pour passer d'un champ à l'autre sans la souris.</p>
+
+<form method="post" action="{{ url_for('professeur.notes_enregistrer') }}" class="grille-saisie">
+  <input type="hidden" name="matiere_id" value="{{ matiere.id }}">
+  <input type="hidden" name="classe_id" value="{{ classe.id }}">
+  <input type="hidden" name="trimestre" value="{{ trimestre }}">
+  <table class="table table-striped align-middle">
+    <thead>
+      <tr>
+        <th>Élève</th>
+        <th>Notes existantes ({{ trimestre }})</th>
+        <th style="width: 160px;">Nouvelle note /20</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for eleve in eleves %}
+      <tr>
+        <td>{{ eleve.nom_complet }}</td>
+        <td>
+          {% for note in notes_par_eleve[eleve.id] %}
+            <span class="badge text-bg-light border me-1">
+              {{ note.valeur }}
+              <button type="button" class="btn-close btn-close-sm" style="font-size:0.5rem;"
+                onclick="document.getElementById('del-{{ note.id }}').submit()"></button>
+            </span>
+            <form id="del-{{ note.id }}" method="post" action="{{ url_for('professeur.note_supprimer', note_id=note.id) }}" class="d-none"></form>
+          {% else %}
+            <span class="text-muted">—</span>
+          {% endfor %}
+        </td>
+        <td>
+          <input type="text" inputmode="decimal" name="note_{{ eleve.id }}" class="form-control" placeholder="ex: 14.5">
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  <button type="submit" class="btn btn-primary">Enregistrer toutes les notes saisies</button>
+</form>
+{% endblock %}

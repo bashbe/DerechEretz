@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% from "_macros.html" import champ %}
+{% block title %}Infractions mineures{% endblock %}
+{% block content %}
+<h1 class="h3 mb-3">Signaler une infraction mineure</h1>
+<form method="post" class="col-md-5">
+  {{ form.hidden_tag() }}
+  {{ champ(form.eleve_id) }}
+  {{ champ(form.type_infraction_id) }}
+  {{ form.submit(class="btn btn-primary") }}
+</form>
+{% endblock %}

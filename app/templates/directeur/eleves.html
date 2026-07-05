@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% from "_macros.html" import bouton_supprimer %}
+{% block title %}Élèves{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h3">Élèves</h1>
+  <a href="{{ url_for('directeur.eleve_nouveau') }}" class="btn btn-primary">+ Nouvel élève</a>
+</div>
+
+<form method="get" class="mb-3 col-md-3">
+  <select name="classe_id" class="form-select" onchange="this.form.submit()">
+    <option value="">Toutes les classes</option>
+    {% for classe in classes %}
+      <option value="{{ classe.id }}" {% if classe.id == classe_id %}selected{% endif %}>{{ classe.nom }}</option>
+    {% endfor %}
+  </select>
+</form>
+
+<table class="table table-striped">
+  <thead><tr><th>Nom</th><th>Prénom</th><th>Classe</th><th>Points vie scolaire</th><th></th></tr></thead>
+  <tbody>
+  {% for eleve in eleves %}
+    <tr>
+      <td>{{ eleve.nom }}</td>
+      <td>{{ eleve.prenom }}</td>
+      <td>{{ eleve.classe.nom }}</td>
+      <td>{{ eleve.points_vie_scolaire }}/20</td>
+      <td class="text-end">
+        <a href="{{ url_for('directeur.eleve_modifier', eleve_id=eleve.id) }}" class="btn btn-sm btn-outline-secondary">Modifier</a>
+        {{ bouton_supprimer(url_for('directeur.eleve_supprimer', eleve_id=eleve.id)) }}
+      </td>
+    </tr>
+  {% else %}
+    <tr><td colspan="5" class="text-muted">Aucun élève.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

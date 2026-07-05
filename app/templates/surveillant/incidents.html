@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% from "_macros.html" import champ %}
+{% block title %}Incidents majeurs{% endblock %}
+{% block content %}
+<div class="row">
+  <div class="col-md-5">
+    <h1 class="h3 mb-3">Signaler un incident majeur</h1>
+    <form method="post">
+      {{ form.hidden_tag() }}
+      {{ champ(form.eleve_id) }}
+      {{ champ(form.gravite) }}
+      {{ champ(form.description) }}
+      {{ champ(form.sanction) }}
+      {{ form.submit(class="btn btn-primary") }}
+    </form>
+  </div>
+  <div class="col-md-7">
+    <h2 class="h5 mb-3">Derniers incidents</h2>
+    <table class="table table-striped">
+      <thead><tr><th>Élève</th><th>Gravité</th><th>Description</th><th>Date</th></tr></thead>
+      <tbody>
+      {% for incident in incidents %}
+        <tr>
+          <td>{{ incident.eleve.nom_complet }}</td>
+          <td><span class="badge text-bg-danger">{{ incident.gravite }}</span></td>
+          <td>{{ incident.description }}</td>
+          <td>{{ incident.date }}</td>
+        </tr>
+      {% else %}
+        <tr><td colspan="4" class="text-muted">Aucun incident.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

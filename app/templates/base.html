@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}École{% endblock %}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+  <style>
+    body { padding-bottom: 3rem; }
+    .table td, .table th { vertical-align: middle; }
+    .grille-saisie input, .grille-saisie select { min-width: 5rem; }
+  </style>
+</head>
+<body>
+  {% if current_user.is_authenticated %}
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="{{ url_for('main.dashboard') }}">Gestion École</a>
+      <div class="collapse navbar-collapse">
+        <ul class="navbar-nav me-auto">
+          {% if current_user.is_directeur() %}
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('directeur.eleves') }}">Élèves</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('directeur.classes') }}">Classes</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('directeur.matieres') }}">Matières</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('directeur.comptes') }}">Comptes</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('directeur.bareme') }}">Barème infractions</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('directeur.discipline_cycles') }}">Cycles discipline</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('directeur.rapports') }}">Rapports</a></li>
+          {% elif current_user.is_professeur() %}
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('professeur.saisie_notes') }}">Saisie notes</a></li>
+          {% elif current_user.is_surveillant() %}
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('surveillant.absences_du_jour') }}">Absences / retards</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('surveillant.infractions') }}">Infractions mineures</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('surveillant.incidents') }}">Incidents majeurs</a></li>
+          {% endif %}
+        </ul>
+        <span class="navbar-text me-3">{{ current_user.nom }} ({{ current_user.role }})</span>
+        <a class="btn btn-outline-light btn-sm" href="{{ url_for('auth.logout') }}">Déconnexion</a>
+      </div>
+    </div>
+  </nav>
+  {% endif %}
+
+  <div class="container-fluid">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

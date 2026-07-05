@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Rapports{% endblock %}
+{% block content %}
+<h1 class="h3 mb-3">Rapports</h1>
+
+<div class="row g-4 mb-4">
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-body">
+        <h2 class="h6">Générer un rapport de notes</h2>
+        <form method="post" action="{{ url_for('directeur.rapport_notes_generer') }}" class="row g-2">
+          <div class="col-7">
+            <select name="classe_id" class="form-select" required>
+              <option value="">Classe...</option>
+              {% for classe in classes %}<option value="{{ classe.id }}">{{ classe.nom }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-3">
+            <select name="trimestre" class="form-select">
+              <option value="T1">T1</option>
+              <option value="T2">T2</option>
+              <option value="T3">T3</option>
+            </select>
+          </div>
+          <div class="col-2">
+            <button type="submit" class="btn btn-primary w-100">Générer</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-body">
+        <h2 class="h6">Générer un rapport d'absences</h2>
+        <form method="post" action="{{ url_for('directeur.rapport_absences_generer') }}" class="row g-2">
+          <div class="col-9">
+            <select name="classe_id" class="form-select" required>
+              <option value="">Classe...</option>
+              {% for classe in classes %}<option value="{{ classe.id }}">{{ classe.nom }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-3">
+            <button type="submit" class="btn btn-primary w-100">Générer</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h2 class="h5">Historique des rapports</h2>
+<table class="table table-striped">
+  <thead><tr><th>Type</th><th>Titre</th><th>Date</th><th></th></tr></thead>
+  <tbody>
+  {% for rapport in rapports %}
+    <tr>
+      <td><span class="badge text-bg-secondary">{{ rapport.type }}</span></td>
+      <td>{{ rapport.titre }}</td>
+      <td>{{ rapport.date_creation.strftime('%d/%m/%Y %H:%M') }}</td>
+      <td class="text-end">
+        {% if rapport.fichier_pdf %}<a href="{{ url_for('directeur.rapport_telecharger', rapport_id=rapport.id, format='pdf') }}" class="btn btn-sm btn-outline-secondary">PDF</a>{% endif %}
+        {% if rapport.fichier_excel %}<a href="{{ url_for('directeur.rapport_telecharger', rapport_id=rapport.id, format='excel') }}" class="btn btn-sm btn-outline-secondary">Excel</a>{% endif %}
+      </td>
+    </tr>
+  {% else %}
+    <tr><td colspan="4" class="text-muted">Aucun rapport généré.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
