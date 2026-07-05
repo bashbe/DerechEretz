@@ -84,6 +84,9 @@ class Eleve(db.Model):
     incidents_majeurs = db.relationship(
         "IncidentMajeur", back_populates="eleve", cascade="all, delete-orphan"
     )
+    contacts_parents = db.relationship(
+        "ContactParent", back_populates="eleve", cascade="all, delete-orphan"
+    )
 
     @property
     def nom_complet(self):
@@ -276,3 +279,16 @@ class Controle(db.Model):
     trimestre_id = db.Column(db.Integer, db.ForeignKey("trimestres.id"), nullable=False)
 
     trimestre = db.relationship("Trimestre", back_populates="controles")
+
+
+class ContactParent(db.Model):
+    __tablename__ = "contacts_parents"
+
+    id = db.Column(db.Integer, primary_key=True)
+    eleve_id = db.Column(db.Integer, db.ForeignKey("eleves.id"), nullable=False)
+    lien = db.Column(db.String(10), nullable=False)  # 'pere', 'mere' ou 'autre'
+    nom = db.Column(db.String(120), nullable=False)
+    telephone = db.Column(db.String(30), nullable=True)
+    email = db.Column(db.String(150), nullable=True)
+
+    eleve = db.relationship("Eleve", back_populates="contacts_parents")

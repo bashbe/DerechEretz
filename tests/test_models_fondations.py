@@ -1,7 +1,7 @@
 from datetime import date
 
 from app.extensions import db
-from app.models import AnneeScolaire, Trimestre
+from app.models import AnneeScolaire, Classe, ContactParent, Eleve, Trimestre
 
 
 def test_annee_scolaire_creation(app):
@@ -46,3 +46,34 @@ def test_trimestre_lie_a_annee_scolaire(app):
 
     assert trimestre.annee_id == annee.id
     assert annee.trimestres == [trimestre]
+
+
+def test_contact_parent_plusieurs_par_eleve(app):
+    classe = Classe(nom="6A", annee_scolaire="2025-2026")
+    eleve = Eleve(nom="Dupont", prenom="Jean", classe=classe)
+    db.session.add_all([classe, eleve])
+    db.session.commit()
+
+    pere = ContactParent(eleve=eleve, lien="pere", nom="Paul Dupont", telephone="0600000000")
+    mere = ContactParent(eleve=eleve, lien="mere", nom="Marie Dupont", email="marie@mail.fr")
+    db.session.add_all([pere, mere])
+    db.session.commit()
+
+    assert len(eleve.contacts_parents) == 2
+    assert {c.lien for c in eleve.contacts_parents} == {"pere", "mere"}
+
+
+def test_contact_parent_supprime_avec_eleve(app):
+    classe = Classe(nom="6A", annee_scolaire="2025-2026")
+    eleve = Eleve(nom="Dupont", prenom="Jean", classe=classe)
+    db.session.add_all([classe, eleve])
+    db.session.commit()
+    contact = ContactParent(eleve=eleve, lien="pere", nom="Paul Dupont")
+    db.session.add(contact)
+    db.session.commit()
+    contact_id = contact.id
+
+    db.session.delete(eleve)
+    db.session.commit()
+
+    assert db.session.get(ContactParent, contact_id) is None
