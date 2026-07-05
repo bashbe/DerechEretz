@@ -238,3 +238,28 @@ class RapportGenere(db.Model):
     cycle_id = db.Column(db.Integer, db.ForeignKey("cycles_discipline.id"), nullable=True)
 
     cycle = db.relationship("CycleDiscipline", back_populates="rapports")
+
+
+class AnneeScolaire(db.Model):
+    __tablename__ = "annees_scolaires"
+
+    id = db.Column(db.Integer, primary_key=True)
+    libelle = db.Column(db.String(20), nullable=False)
+    date_debut = db.Column(db.Date, nullable=False)
+    date_fin = db.Column(db.Date, nullable=False)
+    active = db.Column(db.Boolean, nullable=False, default=False)
+
+    trimestres = db.relationship(
+        "Trimestre", back_populates="annee", cascade="all, delete-orphan"
+    )
+
+
+class Trimestre(db.Model):
+    """Placeholder for Phase 1 Fondations - fully implemented in Task 2."""
+
+    __tablename__ = "trimestres"
+
+    id = db.Column(db.Integer, primary_key=True)
+    annee_scolaire_id = db.Column(db.Integer, db.ForeignKey("annees_scolaires.id"), nullable=False)
+
+    annee = db.relationship("AnneeScolaire", back_populates="trimestres")
