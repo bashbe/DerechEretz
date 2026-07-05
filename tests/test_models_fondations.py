@@ -1,7 +1,7 @@
 from datetime import date
 
 from app.extensions import db
-from app.models import AnneeScolaire
+from app.models import AnneeScolaire, Trimestre
 
 
 def test_annee_scolaire_creation(app):
@@ -29,3 +29,20 @@ def test_annee_scolaire_active_par_defaut_false(app):
     db.session.commit()
 
     assert annee.active is False
+
+
+def test_trimestre_lie_a_annee_scolaire(app):
+    annee = AnneeScolaire(
+        libelle="2025-2026", date_debut=date(2025, 9, 1), date_fin=date(2026, 6, 30)
+    )
+    db.session.add(annee)
+    db.session.commit()
+
+    trimestre = Trimestre(
+        annee=annee, code="T1", date_debut=date(2025, 9, 1), date_fin=date(2025, 12, 19)
+    )
+    db.session.add(trimestre)
+    db.session.commit()
+
+    assert trimestre.annee_id == annee.id
+    assert annee.trimestres == [trimestre]

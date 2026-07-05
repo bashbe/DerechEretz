@@ -255,11 +255,24 @@ class AnneeScolaire(db.Model):
 
 
 class Trimestre(db.Model):
-    """Placeholder for Phase 1 Fondations - fully implemented in Task 2."""
-
     __tablename__ = "trimestres"
 
     id = db.Column(db.Integer, primary_key=True)
-    annee_scolaire_id = db.Column(db.Integer, db.ForeignKey("annees_scolaires.id"), nullable=False)
+    annee_id = db.Column(db.Integer, db.ForeignKey("annees_scolaires.id"), nullable=False)
+    code = db.Column(db.String(2), nullable=False)
+    date_debut = db.Column(db.Date, nullable=False)
+    date_fin = db.Column(db.Date, nullable=False)
 
     annee = db.relationship("AnneeScolaire", back_populates="trimestres")
+    controles = db.relationship("Controle", back_populates="trimestre")
+
+
+class Controle(db.Model):
+    """Placeholder for Phase 1 Fondations - fully implemented in Task 5."""
+
+    __tablename__ = "controles"
+
+    id = db.Column(db.Integer, primary_key=True)
+    trimestre_id = db.Column(db.Integer, db.ForeignKey("trimestres.id"), nullable=False)
+
+    trimestre = db.relationship("Trimestre", back_populates="controles")
