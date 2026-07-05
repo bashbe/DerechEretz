@@ -180,11 +180,13 @@ class InfractionMineure(db.Model):
     date = db.Column(db.Date, nullable=False, default=date.today)
     saisi_par_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     cycle_id = db.Column(db.Integer, db.ForeignKey("cycles_discipline.id"), nullable=True)
+    matiere_id = db.Column(db.Integer, db.ForeignKey("matieres.id"), nullable=True)
 
     eleve = db.relationship("Eleve", back_populates="infractions_mineures")
     type_infraction = db.relationship("TypeInfractionMineure")
     saisi_par = db.relationship("User")
     cycle = db.relationship("CycleDiscipline", back_populates="infractions")
+    matiere = db.relationship("Matiere")
 
 
 class IncidentMajeur(db.Model):
@@ -197,9 +199,11 @@ class IncidentMajeur(db.Model):
     sanction = db.Column(db.String(255))
     date = db.Column(db.Date, nullable=False, default=date.today)
     saisi_par_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    matiere_id = db.Column(db.Integer, db.ForeignKey("matieres.id"), nullable=True)
 
     eleve = db.relationship("Eleve", back_populates="incidents_majeurs")
     saisi_par = db.relationship("User")
+    matiere = db.relationship("Matiere")
 
 
 class CycleDiscipline(db.Model):

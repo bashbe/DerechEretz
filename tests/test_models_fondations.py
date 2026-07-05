@@ -4,7 +4,22 @@ import pytest
 from sqlalchemy.exc import IntegrityError
 
 from app.extensions import db
-from app.models import AnneeScolaire, Classe, ContactParent, Controle, Eleve, Matiere, Note, Notice, Presence, Trimestre, User
+from app.models import (
+    AnneeScolaire,
+    Classe,
+    ContactParent,
+    Controle,
+    Eleve,
+    IncidentMajeur,
+    InfractionMineure,
+    Matiere,
+    Note,
+    Notice,
+    Presence,
+    Trimestre,
+    TypeInfractionMineure,
+    User,
+)
 
 
 def test_annee_scolaire_creation(app):
@@ -213,3 +228,48 @@ def test_presence_unique_par_eleve_et_date(app):
     with pytest.raises(IntegrityError):
         db.session.commit()
     db.session.rollback()
+
+
+def test_infraction_mineure_matiere_optionnelle(app):
+    classe = Classe(nom="6A", annee_scolaire="2025-2026")
+    eleve = Eleve(nom="Dupont", prenom="Jean", classe=classe)
+    type_infraction = TypeInfractionMineure(libelle="Bavardage", points_deduits=1)
+    matiere = Matiere(nom="Maths", coefficient=3)
+    user = User(nom="Surveillant", email="surv4@ecole.test", role="surveillant")
+    user.set_password("password123")
+    db.session.add_all([classe, eleve, type_infraction, matiere, user])
+    db.session.commit()
+
+    sans_matiere = InfractionMineure(
+        eleve=eleve, type_infraction=type_infraction, saisi_par=user
+    )
+    avec_matiere = InfractionMineure(
+        eleve=eleve, type_infraction=type_infraction, matiere=matiere, saisi_par=user
+    )
+    db.session.add_all([sans_matiere, avec_matiere])
+    db.session.commit()
+
+    assert sans_matiere.matiere_id is None
+    assert avec_matiere.matiere_id == matiere.id
+
+
+def test_incident_majeur_matiere_optionnelle(app):
+    classe = Classe(nom="6A", annee_scolaire="2025-2026")
+    eleve = Eleve(nom="Dupont", prenom="Jean", classe=classe)
+    matiere = Matiere(nom="Maths", coefficient=3)
+    user = User(nom="Surveillant", email="surv5@ecole.test", role="surveillant")
+    user.set_password("password123")
+    db.session.add_all([classe, eleve, matiere, user])
+    db.session.commit()
+
+    incident = IncidentMajeur(
+        eleve=eleve,
+        description="Conflit en classe",
+        gravite="moyenne",
+        matiere=matiere,
+        saisi_par=user,
+    )
+    db.session.add(incident)
+    db.session.commit()
+
+    assert incident.matiere_id == matiere.id
