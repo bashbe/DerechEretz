@@ -87,6 +87,7 @@ class Eleve(db.Model):
     contacts_parents = db.relationship(
         "ContactParent", back_populates="eleve", cascade="all, delete-orphan"
     )
+    notices = db.relationship("Notice", back_populates="eleve", cascade="all, delete-orphan")
 
     @property
     def nom_complet(self):
@@ -292,3 +293,19 @@ class ContactParent(db.Model):
     email = db.Column(db.String(150), nullable=True)
 
     eleve = db.relationship("Eleve", back_populates="contacts_parents")
+
+
+class Notice(db.Model):
+    __tablename__ = "notices"
+
+    id = db.Column(db.Integer, primary_key=True)
+    eleve_id = db.Column(db.Integer, db.ForeignKey("eleves.id"), nullable=False)
+    titre = db.Column(db.String(150), nullable=False)
+    contenu = db.Column(db.Text, nullable=False)
+    matiere_id = db.Column(db.Integer, db.ForeignKey("matieres.id"), nullable=True)
+    date = db.Column(db.Date, nullable=False, default=date.today)
+    saisi_par_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+
+    eleve = db.relationship("Eleve", back_populates="notices")
+    matiere = db.relationship("Matiere")
+    saisi_par = db.relationship("User")
