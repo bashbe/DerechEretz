@@ -4,11 +4,11 @@ vacances scolaires, cycles de discipline de ~15 jours) plutôt que par tirages
 uniformes indépendants.
 
 Commande : flask seed-demo
-Comptes créés (mot de passe : demo123) :
-  demo@ecole.fr          — directeur
-  prof.maths@demo.fr     — professeur (Mathématiques, Sciences, Sport)
-  prof.lettres@demo.fr   — professeur (Français, Histoire-Géo)
-  surveillant@demo.fr    — surveillant
+Comptes créés :
+  bmerets@gmail.com      — directeur (mot de passe : 12345678)
+  prof.maths@demo.fr     — professeur (mot de passe : demo123, Mathématiques, Sciences, Sport)
+  prof.lettres@demo.fr   — professeur (mot de passe : demo123, Français, Histoire-Géo)
+  surveillant@demo.fr    — surveillant (mot de passe : demo123)
 
 Réinitialiser la base avant de relancer ce script (PowerShell, depuis la
 racine du projet, serveur Flask arrêté) :
@@ -125,8 +125,8 @@ def run_seed(app):
         # ------------------------------------------------------------------ #
         # Comptes
         # ------------------------------------------------------------------ #
-        directeur = User(nom="Diane Directeur", email="demo@ecole.fr", role="directeur", actif=True)
-        directeur.set_password("demo123")
+        directeur = User(nom="Benoit Mérets", email="bmerets@gmail.com", role="directeur", actif=True)
+        directeur.set_password("12345678")
 
         prof_maths = User(nom="Pierre Mathieu", email="prof.maths@demo.fr", role="professeur", actif=True)
         prof_maths.set_password("demo123")
@@ -517,7 +517,7 @@ def run_seed(app):
         return (
             f"✓ Démo créée : {nb_eleves} élèves dans {len(classes)} classes, "
             f"3 trimestres, {len(cycles)} cycles de discipline de ~{jours_cycle} jours "
-            f"({nb_cloturés} clôturés, le dernier actif), "
-            f"comptes : demo@ecole.fr / prof.maths@demo.fr / prof.lettres@demo.fr / surveillant@demo.fr "
-            f"(mot de passe : demo123)"
+            f"({nb_cloturés} clôturés, le dernier actif). "
+            f"Compte directeur : bmerets@gmail.com / 12345678. "
+            f"Autres comptes (mot de passe demo123) : prof.maths@demo.fr / prof.lettres@demo.fr / surveillant@demo.fr"
         )
