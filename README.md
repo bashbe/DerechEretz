@@ -110,9 +110,11 @@ Puis ouvrir http://127.0.0.1:5000 et se connecter avec le compte créé.
 
 ---
 
-## Démonstration
+## Initialisation minimaliste
 
-Un jeu de données fictif est inclus pour explorer toutes les fonctionnalités sans saisie manuelle.
+La commande `seed-demo` initialise la base vierge avec :
+- Compte directeur : `bmerets@gmail.com` / `12345678`
+- Matières, classes, année scolaire et trimestres (structure vide)
 
 ```bash
 flask db upgrade
@@ -120,16 +122,11 @@ flask seed-demo
 python run.py
 ```
 
-Puis visiter **http://127.0.0.1:5000** et se connecter avec un des comptes ci-dessous.
+Visitez **http://127.0.0.1:5000** et connectez-vous avec :
+- Email : `bmerets@gmail.com`
+- Mot de passe : `12345678`
 
-Quatre profils sont disponibles :
-
-| Compte | Rôle | Mot de passe |
-|---|---|---|
-| `bmerets@gmail.com` | Directeur | `12345678` |
-| `prof.maths@demo.fr` | Professeur (Mathématiques, Sciences, Sport) | `demo123` |
-| `prof.lettres@demo.fr` | Professeure (Français, Histoire-Géo) | `demo123` |
-| `surveillant@demo.fr` | Surveillant | `demo123` |
+Puis créez les classes, élèves et données scolaires depuis l'interface (onglet Admin pour la directrice).
 
 Le jeu de données comprend 3 classes, 60 élèves, ~2 000 notes sur 3 trimestres, ~325 présences, 50 infractions, 6 incidents majeurs, 8 notices et 2 cycles de discipline (un clôturé, un en cours).
 
