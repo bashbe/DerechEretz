@@ -1,3 +1,5 @@
+from datetime import date
+
 from flask import Blueprint, abort, flash, redirect, render_template, request, send_file, url_for
 from flask_login import login_required
 
@@ -46,8 +48,13 @@ def rapport_absences():
     periode = request.form.get("periode", "mois")
     if periode not in PRESETS_PERIODE:
         periode = "mois"
+    reference_arg = request.form.get("reference")
     try:
-        date_debut, date_fin = resoudre_periode(periode)
+        reference = date.fromisoformat(reference_arg) if reference_arg else None
+    except ValueError:
+        reference = None
+    try:
+        date_debut, date_fin = resoudre_periode(periode, reference)
     except ValueError as erreur:
         flash(str(erreur), "warning")
         return redirect(url_for("rapports.liste"))

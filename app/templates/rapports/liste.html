@@ -47,13 +47,17 @@
               {% endfor %}
             </select>
           </div>
-          <div class="mb-3">
+          <div class="mb-2">
             <select name="periode" class="form-select form-select-sm" required>
-              <option value="mois">Mois en cours</option>
-              <option value="trimestre">Trimestre en cours</option>
+              <option value="mois">Mois</option>
+              <option value="trimestre">Trimestre</option>
               <option value="annee">Année scolaire</option>
-              <option value="cycle">Cycle de discipline en cours</option>
+              <option value="cycle">Cycle de discipline</option>
             </select>
+          </div>
+          <div class="mb-3">
+            <input type="date" name="reference" class="form-control form-control-sm">
+            <div class="form-text">Une date dans la période visée (vide = période en cours).</div>
           </div>
           <button type="submit" class="btn btn-sm btn-primary w-100">Générer</button>
         </form>
