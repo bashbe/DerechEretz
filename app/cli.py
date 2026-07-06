@@ -8,7 +8,7 @@ from app.models import User
 # Sur Windows, la console utilise par défaut l'encodage cp1252 (PowerShell,
 # cmd.exe), qui ne sait pas encoder les symboles (✓, ⚠...) utilisés dans les
 # messages de ces commandes. On force stdout/stderr en UTF-8 pour que
-# `flask seed-demo` etc. ne plantent pas sur `click.echo` après avoir déjà
+# les commandes CLI ne plantent pas sur `click.echo` après avoir déjà
 # committé leurs données.
 for _stream in (sys.stdout, sys.stderr):
     try:
@@ -32,22 +32,6 @@ def register_cli(app):
         db.session.add(user)
         db.session.commit()
         click.echo(f"Compte directeur créé : {email}")
-
-    @app.cli.command("seed-demo")
-    def seed_demo():
-        """Charge 3 classes × 20 élèves avec un historique complet (notes, présences,
-        infractions, incidents, notices, contacts parents).
-
-        Comptes créés (mot de passe demo123) :
-          demo@ecole.fr         — directeur
-          prof.maths@demo.fr    — professeur (Mathématiques, Sciences, Sport)
-          prof.lettres@demo.fr  — professeur (Français, Histoire-Géo)
-          surveillant@demo.fr   — surveillant
-        """
-        from demo.seed import run_seed
-
-        msg = run_seed(app)
-        click.echo(msg)
 
     @app.cli.command("reset-db")
     @click.option(
@@ -79,6 +63,5 @@ def register_cli(app):
             upgrade()
             click.echo("✓ Migrations appliquées")
             click.echo("")
-            click.echo("La base est vierge. Choisissez :")
+            click.echo("La base est vierge. Créez un compte directeur :")
             click.echo("  flask seed-directeur <email> <motdepasse>")
-            click.echo("  flask seed-demo")
