@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}Appel{% endblock %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+  <div>
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb mb-1">
+        <li class="breadcrumb-item"><a href="{{ url_for('presences.liste') }}">Présences</a></li>
+        <li class="breadcrumb-item active">Appel</li>
+      </ol>
+    </nav>
+    <h2 class="mb-0">Appel</h2>
+  </div>
+</div>
+
+{# Sélecteurs classe + date #}
+<form class="row g-2 mb-4 align-items-end" method="get">
+  <div class="col-auto">
+    <label class="form-label small fw-semibold">Classe</label>
+    <select name="classe_id" class="form-select form-select-sm" onchange="this.form.submit()">
+      <option value="">Choisir une classe…</option>
+      {% for c in classes %}
+        <option value="{{ c.id }}" {% if classe_id == c.id %}selected{% endif %}>{{ c.nom }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-auto">
+    <label class="form-label small fw-semibold">Date</label>
+    <input type="date" name="date" class="form-control form-control-sm"
+           value="{{ date_appel.isoformat() }}" onchange="this.form.submit()">
+  </div>
+</form>
+
+{% if classe and eleves %}
+<form method="post" action="{{ url_for('presences.appel_enregistrer') }}">
+  <input type="hidden" name="classe_id" value="{{ classe.id }}">
+  <input type="hidden" name="date" value="{{ date_appel.isoformat() }}">
+
+  <div class="card mb-3">
+    <div class="card-header fw-semibold">
+      {{ classe.nom }} — {{ date_appel.strftime('%A %d %B %Y') }}
+    </div>
+    <div class="card-body p-0">
+      <table class="table table-sm mb-0 grille-saisie">
+        <thead class="table-light">
+          <tr>
+            <th>Élève</th>
+            <th>Statut</th>
+            <th>Heure d'arrivée</th>
+            <th>Justifié</th>
+            <th>Motif</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for eleve in eleves %}
+          {% set p = presences_par_eleve.get(eleve.id) %}
+          <tr>
+            <td>{{ eleve.nom_complet }}</td>
+            <td>
+              <select name="statut_{{ eleve.id }}" class="form-select form-select-sm">
+                <option value="">—</option>
+                {% for val, label in [("present","Présent"),("absent","Absent"),("retard","Retard")] %}
+                  <option value="{{ val }}" {{ 'selected' if p and p.statut == val }}>{{ label }}</option>
+                {% endfor %}
+              </select>
+            </td>
+            <td>
+              <input type="time" name="heure_{{ eleve.id }}" class="form-control form-control-sm"
+                     value="{{ p.heure_arrivee.strftime('%H:%M') if p and p.heure_arrivee else '' }}">
+            </td>
+            <td class="text-center">
+              <input type="checkbox" name="justifie_{{ eleve.id }}" value="1" class="form-check-input"
+                     {{ 'checked' if p and p.justifie }}>
+            </td>
+            <td>
+              <input type="text" name="motif_{{ eleve.id }}" class="form-control form-control-sm"
+                     value="{{ p.motif or '' }}" placeholder="Motif (optionnel)">
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <button type="submit" class="btn btn-primary">Enregistrer l'appel</button>
+  <a href="{{ url_for('presences.liste') }}" class="btn btn-outline-secondary ms-2">Annuler</a>
+</form>
+{% elif classe %}
+<div class="alert alert-warning">Cette classe n'a aucun élève.</div>
+{% else %}
+<div class="text-muted fst-italic">Sélectionnez une classe pour faire l'appel.</div>
+{% endif %}
+
+{% endblock %}

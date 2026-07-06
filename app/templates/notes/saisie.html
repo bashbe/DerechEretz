@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Saisie — {{ controle.intitule }}{% endblock %}
+{% block content %}
+
+<div class="mb-3">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb mb-1">
+      <li class="breadcrumb-item"><a href="{{ url_for('notes.liste') }}">Notes</a></li>
+      <li class="breadcrumb-item active">{{ controle.intitule }}</li>
+    </ol>
+  </nav>
+  <h2 class="mb-0">{{ controle.intitule }}</h2>
+  <small class="text-muted">
+    {{ controle.classe.nom }} · {{ controle.matiere.nom }} · {{ controle.date.strftime('%d/%m/%Y') }} · coef. {{ controle.coefficient }}
+    {% if controle.trimestre %} · {{ controle.trimestre.code }}{% endif %}
+  </small>
+</div>
+
+<form method="post">
+  <div class="card mb-3">
+    <div class="card-body p-0">
+      <table class="table table-sm mb-0 grille-saisie">
+        <thead class="table-light">
+          <tr>
+            <th>Élève</th>
+            <th>Note /20</th>
+            <th>Statut</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for eleve in eleves %}
+          {% set note = notes_par_eleve.get(eleve.id) %}
+          <tr>
+            <td>{{ eleve.nom_complet }}</td>
+            <td>
+              <input type="number" name="note_{{ eleve.id }}" class="form-control form-control-sm"
+                     min="0" max="20" step="0.5"
+                     value="{{ note.valeur if note else '' }}"
+                     placeholder="—">
+            </td>
+            <td>
+              {% if note %}
+                <span class="badge
+                  {% if note.valeur < 10 %}bg-danger
+                  {% elif note.valeur >= 14 %}bg-success
+                  {% else %}bg-secondary{% endif %}">
+                  {{ note.valeur }}
+                </span>
+              {% else %}
+                <span class="text-muted small">—</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <button type="submit" class="btn btn-primary">Enregistrer les notes</button>
+  <a href="{{ url_for('notes.liste') }}" class="btn btn-outline-secondary ms-2">Retour</a>
+</form>
+
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% from "_macros.html" import champ %}
+{% block title %}{{ titre }}{% endblock %}
+{% block content %}
+<h1 class="h3 mb-3">{{ titre }}</h1>
+<form method="post" class="col-md-5">
+  {{ form.hidden_tag() }}
+  {{ champ(form.annee_id) }}
+  {{ champ(form.code) }}
+  {{ champ(form.date_debut) }}
+  {{ champ(form.date_fin) }}
+  {{ form.submit(class="btn btn-primary") }}
+  <a href="{{ url_for('admin.trimestres') }}" class="btn btn-link">Annuler</a>
+</form>
+{% endblock %}

@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Nouveau contrôle{% endblock %}
+{% block content %}
+
+<div class="mb-3">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb mb-1">
+      <li class="breadcrumb-item"><a href="{{ url_for('notes.liste') }}">Notes</a></li>
+      <li class="breadcrumb-item active">Nouveau contrôle</li>
+    </ol>
+  </nav>
+  <h2 class="mb-0">Nouveau contrôle</h2>
+</div>
+
+<div class="card" style="max-width:520px">
+  <div class="card-body">
+    <form method="post">
+      <div class="mb-3">
+        <label class="form-label">Intitulé</label>
+        <input type="text" name="intitule" class="form-control" required placeholder="ex : Contrôle chapitre 3">
+      </div>
+      <div class="row g-2 mb-3">
+        <div class="col">
+          <label class="form-label">Classe</label>
+          <select name="classe_id" class="form-select" required>
+            <option value="">Choisir…</option>
+            {% for c in classes %}
+              <option value="{{ c.id }}">{{ c.nom }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col">
+          <label class="form-label">Matière</label>
+          <select name="matiere_id" class="form-select" required>
+            <option value="">Choisir…</option>
+            {% for m in matieres %}
+              <option value="{{ m.id }}">{{ m.nom }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="row g-2 mb-3">
+        <div class="col">
+          <label class="form-label">Date</label>
+          <input type="date" name="date" class="form-control" value="{{ today }}" required>
+        </div>
+        <div class="col">
+          <label class="form-label">Coefficient</label>
+          <input type="number" name="coefficient" class="form-control" value="1" min="0.1" step="0.1" required>
+        </div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Trimestre (optionnel)</label>
+        <select name="trimestre_id" class="form-select">
+          <option value="">Aucun</option>
+          {% for t in trimestres %}
+            <option value="{{ t.id }}">{{ t.code }} ({{ t.date_debut.strftime('%d/%m/%Y') }} – {{ t.date_fin.strftime('%d/%m/%Y') }})</option>
+          {% endfor %}
+        </select>
+      </div>
+      <button type="submit" class="btn btn-primary">Créer et saisir les notes</button>
+      <a href="{{ url_for('notes.liste') }}" class="btn btn-outline-secondary ms-2">Annuler</a>
+    </form>
+  </div>
+</div>
+
+{% endblock %}
