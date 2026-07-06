@@ -89,6 +89,16 @@
   </nav>
   {% endif %}
 
+  {# Bannière démo (visible uniquement pour les comptes démo) #}
+  {% set EMAILS_DEMO = ['demo@ecole.fr', 'prof.maths@demo.fr', 'prof.lettres@demo.fr', 'surveillant@demo.fr'] %}
+  {% if current_user.is_authenticated and current_user.email in EMAILS_DEMO %}
+  <div class="bg-warning text-dark text-center py-1 small fw-semibold">
+    🎭 Mode démo — connecté en tant que <strong>{{ current_user.nom }}</strong>
+    <a href="{{ url_for('demo.landing') }}" class="ms-3 text-dark">Changer de compte</a>
+    <a href="{{ url_for('demo.quitter') }}" class="ms-2 text-dark">Quitter</a>
+  </div>
+  {% endif %}
+
   <div class="container-fluid">
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
