@@ -24,6 +24,7 @@ def create_app(config_class=Config):
     from app.professeur.routes import professeur_bp
     from app.surveillant.routes import surveillant_bp
     from app.eleves.routes import eleves_bp
+    from app.demo.routes import demo_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
@@ -31,6 +32,7 @@ def create_app(config_class=Config):
     app.register_blueprint(professeur_bp, url_prefix="/professeur")
     app.register_blueprint(surveillant_bp, url_prefix="/surveillant")
     app.register_blueprint(eleves_bp)
+    app.register_blueprint(demo_bp)
 
     from app.cli import register_cli
 
