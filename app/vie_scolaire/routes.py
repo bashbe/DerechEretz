@@ -7,7 +7,7 @@ chaque action est gardée par les prédicats de app/permissions.py.
 """
 
 import calendar
-from datetime import date, time
+from datetime import date, time, timedelta
 
 from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
@@ -40,10 +40,21 @@ def guard():
     pass
 
 
-def _periode(preset):
+def _parser_reference():
+    valeur = request.args.get("reference")
+    if not valeur:
+        return None
     try:
-        return resoudre_periode(preset), preset
+        return date.fromisoformat(valeur)
     except ValueError:
+        return None
+
+
+def _periode(preset, reference=None):
+    try:
+        return resoudre_periode(preset, reference), preset
+    except ValueError as erreur:
+        flash(str(erreur), "warning")
         today = date.today()
         debut = today.replace(day=1)
         fin = today.replace(day=calendar.monthrange(today.year, today.month)[1])
@@ -184,7 +195,10 @@ def evenement_creer():
 @vie_scolaire_bp.route("/vie-scolaire/evenements")
 def evenements_liste():
     preset = request.args.get("periode", "mois")
-    (date_debut, date_fin), preset = _periode(preset)
+    reference = _parser_reference()
+    (date_debut, date_fin), preset = _periode(preset, reference)
+    reference_precedent = date_debut - timedelta(days=1)
+    reference_suivant = date_fin + timedelta(days=1)
 
     type_filtre = request.args.get("type")
     if type_filtre not in evenements.TYPES_EVENEMENTS:
@@ -216,6 +230,8 @@ def evenements_liste():
         preset=preset,
         date_debut=date_debut,
         date_fin=date_fin,
+        reference_precedent=reference_precedent,
+        reference_suivant=reference_suivant,
         type_filtre=type_filtre,
         classe_id=classe_id,
         eleve_id=eleve_id,

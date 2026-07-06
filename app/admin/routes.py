@@ -19,6 +19,7 @@ from app.models import (
     AffectationProf,
     AnneeScolaire,
     Classe,
+    ContactParent,
     CycleDiscipline,
     Eleve,
     Matiere,
@@ -120,6 +121,38 @@ def matiere_supprimer(matiere_id):
 
 # --- Élèves ---------------------------------------------------------------
 
+def _contact_parent(eleve, lien):
+    return next((c for c in eleve.contacts_parents if c.lien == lien), None)
+
+
+def _prefill_contacts_parents(form, eleve):
+    """GET : reporte les contacts existants (père/mère) sur le formulaire."""
+    for lien in ("pere", "mere"):
+        contact = _contact_parent(eleve, lien)
+        if contact:
+            getattr(form, f"{lien}_nom").data = contact.nom
+            getattr(form, f"{lien}_telephone").data = contact.telephone
+            getattr(form, f"{lien}_email").data = contact.email
+
+
+def _appliquer_contacts_parents(form, eleve):
+    """POST : crée/mets à jour/supprime les contacts père et mère depuis le formulaire."""
+    for lien in ("pere", "mere"):
+        nom = (getattr(form, f"{lien}_nom").data or "").strip()
+        telephone = (getattr(form, f"{lien}_telephone").data or "").strip() or None
+        email = (getattr(form, f"{lien}_email").data or "").strip() or None
+        contact = _contact_parent(eleve, lien)
+        if not nom and not telephone and not email:
+            if contact:
+                db.session.delete(contact)
+            continue
+        if not contact:
+            contact = ContactParent(eleve=eleve, lien=lien)
+            db.session.add(contact)
+        contact.nom = nom or lien.capitalize()
+        contact.telephone = telephone
+        contact.email = email
+
 @admin_bp.route("/admin/eleves")
 def eleves():
     classe_id = request.args.get("classe_id", type=int)
@@ -136,7 +169,15 @@ def eleve_nouveau():
     form = EleveForm()
     form.classe_id.choices = [(c.id, c.nom) for c in Classe.query.order_by(Classe.nom)]
     if form.validate_on_submit():
-        db.session.add(Eleve(nom=form.nom.data, prenom=form.prenom.data, classe_id=form.classe_id.data))
+        eleve = Eleve(
+            nom=form.nom.data,
+            prenom=form.prenom.data,
+            classe_id=form.classe_id.data,
+            date_naissance=form.date_naissance.data,
+            adresse=form.adresse.data,
+        )
+        db.session.add(eleve)
+        _appliquer_contacts_parents(form, eleve)
         db.session.commit()
         flash("Élève ajouté.", "success")
         return redirect(url_for("admin.eleves"))
@@ -148,8 +189,11 @@ def eleve_modifier(eleve_id):
     eleve = db.session.get(Eleve, eleve_id) or abort(404)
     form = EleveForm(obj=eleve)
     form.classe_id.choices = [(c.id, c.nom) for c in Classe.query.order_by(Classe.nom)]
+    if request.method == "GET":
+        _prefill_contacts_parents(form, eleve)
     if form.validate_on_submit():
         form.populate_obj(eleve)
+        _appliquer_contacts_parents(form, eleve)
         db.session.commit()
         flash("Élève modifié.", "success")
         return redirect(url_for("admin.eleves"))

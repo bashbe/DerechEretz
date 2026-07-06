@@ -39,12 +39,20 @@
       <div class="card-header fw-semibold">Rapport d'absences</div>
       <div class="card-body">
         <form method="post" action="{{ url_for('rapports.rapport_absences') }}">
-          <div class="mb-3">
+          <div class="mb-2">
             <select name="classe_id" class="form-select form-select-sm" required>
               <option value="">Choisir une classe…</option>
               {% for c in classes %}
                 <option value="{{ c.id }}">{{ c.nom }}</option>
               {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <select name="periode" class="form-select form-select-sm" required>
+              <option value="mois">Mois en cours</option>
+              <option value="trimestre">Trimestre en cours</option>
+              <option value="annee">Année scolaire</option>
+              <option value="cycle">Cycle de discipline en cours</option>
             </select>
           </div>
           <button type="submit" class="btn btn-sm btn-primary w-100">Générer</button>

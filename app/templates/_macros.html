@@ -1,9 +1,20 @@
 {% macro selecteur_periode(preset, url_base) %}
+  {% set connecteur = '&' if '?' in url_base else '?' %}
   <div class="btn-group btn-group-sm" role="group" aria-label="Période">
     {% for code, label in [("mois", "Mois"), ("trimestre", "Trimestre"), ("annee", "Année"), ("cycle", "Cycle")] %}
-      <a href="{{ url_base }}?periode={{ code }}"
+      <a href="{{ url_base }}{{ connecteur }}periode={{ code }}"
          class="btn {{ 'btn-primary' if preset == code else 'btn-outline-secondary' }}">{{ label }}</a>
     {% endfor %}
+  </div>
+{% endmacro %}
+
+{% macro navigation_periode(preset, url_base, reference_precedent, reference_suivant) %}
+  {% set connecteur = '&' if '?' in url_base else '?' %}
+  <div class="btn-group btn-group-sm" role="group" aria-label="Navigation période">
+    <a href="{{ url_base }}{{ connecteur }}periode={{ preset }}&reference={{ reference_precedent.isoformat() }}"
+       class="btn btn-outline-secondary" title="Période précédente">&laquo;</a>
+    <a href="{{ url_base }}{{ connecteur }}periode={{ preset }}&reference={{ reference_suivant.isoformat() }}"
+       class="btn btn-outline-secondary" title="Période suivante">&raquo;</a>
   </div>
 {% endmacro %}
 

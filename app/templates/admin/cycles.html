@@ -22,6 +22,8 @@
         {% endif %}
       </td>
       <td class="text-end">
+        <a href="{{ url_for('vie_scolaire.evenements_liste', periode='cycle', reference=cycle.date_debut.isoformat()) }}"
+           class="btn btn-sm btn-outline-secondary">Voir les événements</a>
         {% if not cycle.est_cloture %}
         <form method="post" action="{{ url_for('admin.cycle_cloturer', cycle_id=cycle.id) }}"
               onsubmit="return confirm('Clôturer ce cycle ? Les points de tous les élèves seront figés puis remis à 20, un rapport sera généré.');" class="d-inline">

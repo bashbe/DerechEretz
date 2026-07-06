@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "_macros.html" import selecteur_periode, ligne_evenement %}
+{% from "_macros.html" import selecteur_periode, navigation_periode, ligne_evenement %}
 {% block title %}Événements{% endblock %}
 {% block content %}
 
@@ -15,7 +15,9 @@
     <small class="text-muted">{{ date_debut.strftime('%d/%m/%Y') }} → {{ date_fin.strftime('%d/%m/%Y') }}</small>
   </div>
   <div class="d-flex gap-2 align-items-center flex-wrap">
-    {{ selecteur_periode(preset, url_for('vie_scolaire.evenements_liste', type=type_filtre or '', classe_id=classe_id or '', eleve_id=eleve_id or '')) }}
+    {% set url_liste = url_for('vie_scolaire.evenements_liste', type=type_filtre or '', classe_id=classe_id or '', eleve_id=eleve_id or '') %}
+    {{ navigation_periode(preset, url_liste, reference_precedent, reference_suivant) }}
+    {{ selecteur_periode(preset, url_liste) }}
     <a href="{{ url_for('vie_scolaire.index') }}" class="btn btn-sm btn-primary">+ Nouvel événement</a>
   </div>
 </div>

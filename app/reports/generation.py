@@ -91,18 +91,22 @@ def _render_html_notes(classe, trimestre, matieres, lignes):
     """
 
 
-def generer_rapport_absences(classe):
+def generer_rapport_absences(classe, date_debut, date_fin):
     lignes = []
     for eleve in sorted(classe.eleves, key=lambda e: e.nom):
         entrees = Presence.query.filter(
-            Presence.eleve_id == eleve.id, Presence.statut != "present"
+            Presence.eleve_id == eleve.id,
+            Presence.statut != "present",
+            Presence.date >= date_debut,
+            Presence.date <= date_fin,
         ).all()
         justifiees = sum(1 for p in entrees if p.statut == "absent" and p.justifie)
         injustifiees = sum(1 for p in entrees if p.statut == "absent" and not p.justifie)
         retards = sum(1 for p in entrees if p.statut == "retard")
         lignes.append((eleve, justifiees, injustifiees, retards))
 
-    titre = f"Absences {classe.nom}"
+    periode_str = f"{date_debut.strftime('%d/%m/%Y')} au {date_fin.strftime('%d/%m/%Y')}"
+    titre = f"Absences {classe.nom} — {periode_str}"
     horodatage = _horodatage()
 
     lignes_html = "".join(
@@ -111,7 +115,7 @@ def generer_rapport_absences(classe):
     )
     html = f"""
     <html><body>
-    <h2>Rapport d'absences — {classe.nom}</h2>
+    <h2>Rapport d'absences — {classe.nom} — {periode_str}</h2>
     <table border="1" cellpadding="4" cellspacing="0" width="100%">
       <tr><th>Élève</th><th>Absences justifiées</th><th>Absences injustifiées</th><th>Retards</th></tr>
       {lignes_html}

@@ -28,6 +28,14 @@ class EleveForm(FlaskForm):
     nom = StringField("Nom", validators=[DataRequired()])
     prenom = StringField("Prénom", validators=[DataRequired()])
     classe_id = SelectField("Classe", coerce=int, validators=[DataRequired()])
+    date_naissance = DateField("Date de naissance", validators=[Optional()])
+    adresse = StringField("Adresse", validators=[Optional()])
+    pere_nom = StringField("Nom du père", validators=[Optional()])
+    pere_telephone = StringField("Téléphone du père", validators=[Optional()])
+    pere_email = StringField("Email du père", validators=[Optional(), Email(check_deliverability=False)])
+    mere_nom = StringField("Nom de la mère", validators=[Optional()])
+    mere_telephone = StringField("Téléphone de la mère", validators=[Optional()])
+    mere_email = StringField("Email de la mère", validators=[Optional(), Email(check_deliverability=False)])
     submit = SubmitField("Enregistrer")
 
 

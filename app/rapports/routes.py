@@ -4,6 +4,7 @@ from flask_login import login_required
 from app.decorators import role_required
 from app.extensions import db
 from app.models import Classe, CycleDiscipline, RapportGenere
+from app.periodes import PRESETS_PERIODE, resoudre_periode
 
 rapports_bp = Blueprint("rapports", __name__)
 
@@ -41,7 +42,17 @@ def rapport_absences():
 
     classe_id = request.form.get("classe_id", type=int)
     classe = db.session.get(Classe, classe_id) or abort(404)
-    generer_rapport_absences(classe)
+
+    periode = request.form.get("periode", "mois")
+    if periode not in PRESETS_PERIODE:
+        periode = "mois"
+    try:
+        date_debut, date_fin = resoudre_periode(periode)
+    except ValueError as erreur:
+        flash(str(erreur), "warning")
+        return redirect(url_for("rapports.liste"))
+
+    generer_rapport_absences(classe, date_debut, date_fin)
     flash("Rapport d'absences généré.", "success")
     return redirect(url_for("rapports.liste"))
 

@@ -74,6 +74,8 @@ class Eleve(db.Model):
     prenom = db.Column(db.String(120), nullable=False)
     classe_id = db.Column(db.Integer, db.ForeignKey("classes.id"), nullable=False)
     points_vie_scolaire = db.Column(db.Integer, nullable=False, default=20)
+    date_naissance = db.Column(db.Date, nullable=True)
+    adresse = db.Column(db.String(255), nullable=True)
 
     classe = db.relationship("Classe", back_populates="eleves")
     notes = db.relationship("Note", back_populates="eleve", cascade="all, delete-orphan")
