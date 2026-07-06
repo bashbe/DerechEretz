@@ -1,3 +1,12 @@
+{% macro selecteur_periode(preset, url_base) %}
+  <div class="btn-group btn-group-sm" role="group" aria-label="Période">
+    {% for code, label in [("mois", "Mois"), ("trimestre", "Trimestre"), ("annee", "Année"), ("cycle", "Cycle")] %}
+      <a href="{{ url_base }}?periode={{ code }}"
+         class="btn {{ 'btn-primary' if preset == code else 'btn-outline-secondary' }}">{{ label }}</a>
+    {% endfor %}
+  </div>
+{% endmacro %}
+
 {% macro champ(field) %}
   <div class="mb-3">
     {{ field.label(class="form-label") }}

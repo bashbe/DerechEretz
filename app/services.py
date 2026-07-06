@@ -73,3 +73,64 @@ def matieres_autorisees_pour_professeur(user):
     """Retourne les (matiere, classe) qu'un professeur peut saisir."""
     affectations = AffectationProf.query.filter_by(professeur_id=user.id).all()
     return [(a.matiere, a.classe) for a in affectations]
+
+
+def calculer_moyenne_matiere_periode(eleve_id, matiere_id, date_debut, date_fin):
+    """Moyenne d'une matière pour un élève sur un intervalle de dates.
+
+    Gère les deux styles de notes :
+    - ancienne façon : Note.matiere_id + Note.date (controle_id IS NULL)
+    - nouvelle façon : Note.controle_id → Controle.matiere_id + Controle.date
+      (poids = Controle.coefficient)
+    """
+    from app.models import Controle
+
+    notes_directes = Note.query.filter(
+        Note.eleve_id == eleve_id,
+        Note.matiere_id == matiere_id,
+        Note.controle_id.is_(None),
+        Note.date >= date_debut,
+        Note.date <= date_fin,
+    ).all()
+
+    notes_controle = (
+        Note.query
+        .join(Controle, Note.controle_id == Controle.id)
+        .filter(
+            Note.eleve_id == eleve_id,
+            Controle.matiere_id == matiere_id,
+            Controle.date >= date_debut,
+            Controle.date <= date_fin,
+        )
+        .all()
+    )
+
+    total_pondere = sum(n.valeur for n in notes_directes)
+    total_coeff = float(len(notes_directes))
+
+    for n in notes_controle:
+        coeff = n.controle.coefficient
+        total_pondere += n.valeur * coeff
+        total_coeff += coeff
+
+    if total_coeff == 0:
+        return None
+    return round(total_pondere / total_coeff, 2)
+
+
+def calculer_moyenne_generale_periode(eleve_id, matieres, date_debut, date_fin):
+    """Moyenne générale pondérée par coefficient de matière, sur un intervalle de dates.
+
+    Prend une liste de Matiere explicite pour permettre le filtrage par rôle.
+    """
+    total_pondere = 0.0
+    total_coeff = 0.0
+    for matiere in matieres:
+        moy = calculer_moyenne_matiere_periode(eleve_id, matiere.id, date_debut, date_fin)
+        if moy is None:
+            continue
+        total_pondere += moy * matiere.coefficient
+        total_coeff += matiere.coefficient
+    if total_coeff == 0:
+        return None
+    return round(total_pondere / total_coeff, 2)

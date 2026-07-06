@@ -23,12 +23,14 @@ def create_app(config_class=Config):
     from app.directeur.routes import directeur_bp
     from app.professeur.routes import professeur_bp
     from app.surveillant.routes import surveillant_bp
+    from app.eleves.routes import eleves_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
     app.register_blueprint(directeur_bp, url_prefix="/directeur")
     app.register_blueprint(professeur_bp, url_prefix="/professeur")
     app.register_blueprint(surveillant_bp, url_prefix="/surveillant")
+    app.register_blueprint(eleves_bp)
 
     from app.cli import register_cli
 

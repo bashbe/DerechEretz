@@ -17,25 +17,72 @@
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
     <div class="container-fluid">
       <a class="navbar-brand" href="{{ url_for('main.dashboard') }}">Gestion École</a>
-      <div class="collapse navbar-collapse">
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMain">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navMain">
         <ul class="navbar-nav me-auto">
-          {% if current_user.is_directeur() %}
-            <li class="nav-item"><a class="nav-link" href="{{ url_for('directeur.eleves') }}">Élèves</a></li>
-            <li class="nav-item"><a class="nav-link" href="{{ url_for('directeur.classes') }}">Classes</a></li>
-            <li class="nav-item"><a class="nav-link" href="{{ url_for('directeur.matieres') }}">Matières</a></li>
-            <li class="nav-item"><a class="nav-link" href="{{ url_for('directeur.comptes') }}">Comptes</a></li>
-            <li class="nav-item"><a class="nav-link" href="{{ url_for('directeur.bareme') }}">Barème infractions</a></li>
-            <li class="nav-item"><a class="nav-link" href="{{ url_for('directeur.discipline_cycles') }}">Cycles discipline</a></li>
-            <li class="nav-item"><a class="nav-link" href="{{ url_for('directeur.rapports') }}">Rapports</a></li>
-          {% elif current_user.is_professeur() %}
-            <li class="nav-item"><a class="nav-link" href="{{ url_for('professeur.saisie_notes') }}">Saisie notes</a></li>
-          {% elif current_user.is_surveillant() %}
-            <li class="nav-item"><a class="nav-link" href="{{ url_for('surveillant.absences_du_jour') }}">Absences / retards</a></li>
-            <li class="nav-item"><a class="nav-link" href="{{ url_for('surveillant.infractions') }}">Infractions mineures</a></li>
-            <li class="nav-item"><a class="nav-link" href="{{ url_for('surveillant.incidents') }}">Incidents majeurs</a></li>
+
+          {# Élèves — tous les rôles (Phase 2) #}
+          <li class="nav-item">
+            <a class="nav-link {% if request.blueprint == 'eleves' %}active{% endif %}"
+               href="{{ url_for('eleves.liste') }}">Élèves</a>
+          </li>
+
+          {# Présences — directeur + surveillant (Phase 3 : /presences ; provisoire : ancienne route) #}
+          {% if current_user.is_surveillant() %}
+            <li class="nav-item">
+              <a class="nav-link {% if request.blueprint == 'surveillant' and 'absences' in request.endpoint %}active{% endif %}"
+                 href="{{ url_for('surveillant.absences_du_jour') }}">Présences</a>
+            </li>
           {% endif %}
+
+          {# Notes — directeur + professeur (Phase 4 : /notes ; provisoire : dashboard prof) #}
+          {% if current_user.is_professeur() %}
+            <li class="nav-item">
+              <a class="nav-link {% if request.blueprint == 'professeur' %}active{% endif %}"
+                 href="{{ url_for('main.dashboard_professeur') }}">Notes</a>
+            </li>
+          {% endif %}
+
+          {# Vie scolaire — directeur + surveillant (Phase 5 : /vie-scolaire ; provisoire) #}
+          {% if current_user.is_surveillant() %}
+            <li class="nav-item">
+              <a class="nav-link {% if request.blueprint == 'surveillant' and ('infraction' in request.endpoint or 'incident' in request.endpoint) %}active{% endif %}"
+                 href="{{ url_for('surveillant.infractions') }}">Vie scolaire</a>
+            </li>
+          {% endif %}
+
+          {# Rapports — directeur + surveillant (Phase 6 : /rapports ; provisoire directeur) #}
+          {% if current_user.is_directeur() %}
+            <li class="nav-item">
+              <a class="nav-link {% if request.blueprint == 'directeur' and 'rapport' in request.endpoint %}active{% endif %}"
+                 href="{{ url_for('directeur.rapports') }}">Rapports</a>
+            </li>
+          {% endif %}
+
+          {# Admin — directeur uniquement (Phase 7 : /admin ; provisoire dropdown) #}
+          {% if current_user.is_directeur() %}
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle {% if request.blueprint == 'directeur' and 'rapport' not in request.endpoint %}active{% endif %}"
+                 href="#" data-bs-toggle="dropdown">Admin</a>
+              <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="{{ url_for('directeur.eleves') }}">Élèves</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('directeur.classes') }}">Classes</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('directeur.matieres') }}">Matières</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('directeur.affectations') }}">Affectations</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="{{ url_for('directeur.comptes') }}">Comptes</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('directeur.bareme') }}">Barème infractions</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('directeur.discipline_cycles') }}">Cycles discipline</a></li>
+              </ul>
+            </li>
+          {% endif %}
+
         </ul>
-        <span class="navbar-text me-3">{{ current_user.nom }} ({{ current_user.role }})</span>
+        <span class="navbar-text me-3 small">{{ current_user.nom }}
+          <span class="badge bg-secondary ms-1">{{ current_user.role }}</span>
+        </span>
         <a class="btn btn-outline-light btn-sm" href="{{ url_for('auth.logout') }}">Déconnexion</a>
       </div>
     </div>

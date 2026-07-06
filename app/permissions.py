@@ -22,3 +22,21 @@ def peut_generer_rapports(user):
 
 def peut_gerer_controle(user, matiere_id, classe_id):
     return user.peut_saisir(matiere_id, classe_id)
+
+
+# --- Visibilité des onglets de navigation --------------------------------
+
+def peut_voir_tab_presences(user):
+    return user.is_directeur() or user.is_surveillant()
+
+
+def peut_voir_tab_notes(user):
+    return user.is_directeur() or user.is_professeur()
+
+
+def peut_voir_tab_vie_scolaire(user):
+    return user.is_directeur() or user.is_surveillant()
+
+
+def peut_voir_tab_rapports(user):
+    return user.is_directeur() or user.is_surveillant()
