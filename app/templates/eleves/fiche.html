@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "_macros.html" import selecteur_periode %}
+{% from "_macros.html" import selecteur_periode, ligne_evenement %}
 {% block title %}{{ eleve.nom_complet }}{% endblock %}
 {% block content %}
 
@@ -14,11 +14,13 @@
     <h2 class="mb-0">{{ eleve.nom_complet }}</h2>
     <small class="text-muted">{{ eleve.classe }}</small>
   </div>
-  <div class="d-flex gap-2 align-items-center">
+  <div class="d-flex gap-2 align-items-center flex-wrap">
     {{ selecteur_periode(preset, url_for('eleves.fiche', eleve_id=eleve.id)) }}
-    <button class="btn btn-sm btn-outline-secondary" disabled title="Disponible en Phase 6">
-      Générer un rapport
-    </button>
+    {% if types_creables %}
+    <a href="{{ url_for('vie_scolaire.index', eleve_id=eleve.id) }}" class="btn btn-sm btn-primary">
+      + Ajouter un événement
+    </a>
+    {% endif %}
   </div>
 </div>
 
@@ -41,8 +43,8 @@
           {% for c in eleve.contacts_parents %}
           <li class="mb-1">
             <span class="text-capitalize text-muted">{{ c.lien }}</span> — <strong>{{ c.nom }}</strong>
-            {% if c.telephone %}<br><span class="text-muted">{{ c.telephone }}</span>{% endif %}
-            {% if c.email %}<br><span class="text-muted">{{ c.email }}</span>{% endif %}
+            {% if c.telephone %}<br><span class="text-muted">📞 {{ c.telephone }}</span>{% endif %}
+            {% if c.email %}<br><span class="text-muted">✉️ {{ c.email }}</span>{% endif %}
           </li>
           {% endfor %}
         </ul>
@@ -118,112 +120,43 @@
   </div>
 </div>
 
-{# --- Présences (directeur + surveillant seulement) --- #}
-{% if matieres_autorisees_ids is none %}
+{# --- Rapport d'activités (feed unifié) --- #}
 <div class="card mb-3">
-  <div class="card-header fw-semibold">
-    Présences / Retards
-    <span class="badge bg-secondary ms-1">{{ presences|length }}</span>
+  <div class="card-header fw-semibold d-flex justify-content-between align-items-center">
+    <span>
+      Rapport d'activités
+      <span class="badge bg-secondary ms-1">{{ activites|length }}</span>
+    </span>
+    <a class="small" href="{{ url_for('vie_scolaire.evenements_liste', eleve_id=eleve.id, periode=preset) }}">
+      Voir dans Vie scolaire
+    </a>
   </div>
-  {% if presences %}
+  {% if activites %}
   <div class="card-body p-0">
-    <table class="table table-sm mb-0">
-      <thead class="table-light">
-        <tr><th>Date</th><th>Statut</th><th>Arrivée</th><th>Justifié</th><th>Motif</th></tr>
-      </thead>
-      <tbody>
-        {% for p in presences %}
-        <tr>
-          <td>{{ p.date.strftime('%d/%m/%Y') }}</td>
-          <td>
-            <span class="badge
-              {% if p.statut == 'absent' %}bg-danger
-              {% elif p.statut == 'retard' %}bg-warning text-dark
-              {% else %}bg-success{% endif %}">
-              {{ p.statut }}
-            </span>
-          </td>
-          <td>{{ p.heure_arrivee.strftime('%H:%M') if p.heure_arrivee else '—' }}</td>
-          <td>{% if p.justifie %}<span class="text-success">✓</span>{% endif %}</td>
-          <td><small class="text-muted">{{ p.motif or '' }}</small></td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-  {% else %}
-  <div class="card-body">
-    <p class="text-muted mb-0 fst-italic">Aucune entrée de présence sur cette période.</p>
-  </div>
-  {% endif %}
-</div>
-{% endif %}
-
-{# --- Vie scolaire --- #}
-<div class="card mb-3">
-  <div class="card-header fw-semibold">
-    Vie scolaire
-    <span class="badge bg-secondary ms-1">{{ (infractions|length) + (incidents|length) + (notices|length) }}</span>
-  </div>
-  {% if infractions or incidents or notices %}
-  <div class="card-body p-0">
-    <table class="table table-sm mb-0">
+    <table class="table table-sm table-hover mb-0">
       <thead class="table-light">
         <tr><th>Date</th><th>Type</th><th>Détail</th><th>Matière</th></tr>
       </thead>
       <tbody>
-        {% for i in infractions %}
-        <tr>
-          <td>{{ i.date.strftime('%d/%m/%Y') }}</td>
-          <td><span class="badge bg-warning text-dark">Infraction</span></td>
-          <td>
-            {{ i.type_infraction.libelle }}
-            <small class="text-danger ms-1">−{{ i.type_infraction.points_deduits }} pt{{ 's' if i.type_infraction.points_deduits > 1 }}</small>
-          </td>
-          <td><small class="text-muted">{{ i.matiere.nom if i.matiere else '' }}</small></td>
-        </tr>
-        {% endfor %}
-        {% for i in incidents %}
-        <tr>
-          <td>{{ i.date.strftime('%d/%m/%Y') }}</td>
-          <td>
-            <span class="badge
-              {% if i.gravite == 'majeure' %}bg-danger
-              {% elif i.gravite == 'moyenne' %}bg-warning text-dark
-              {% else %}bg-secondary{% endif %}">
-              Incident
-            </span>
-          </td>
-          <td>
-            {{ i.description[:100] }}{% if i.description|length > 100 %}…{% endif %}
-            {% if i.sanction %}
-              <br><small class="text-muted">Sanction : {{ i.sanction }}</small>
-            {% endif %}
-          </td>
-          <td><small class="text-muted">{{ i.matiere.nom if i.matiere else '' }}</small></td>
-        </tr>
-        {% endfor %}
-        {% for n in notices %}
-        <tr>
-          <td>{{ n.date.strftime('%d/%m/%Y') }}</td>
-          <td><span class="badge bg-info text-dark">Notice</span></td>
-          <td>
-            <strong>{{ n.titre }}</strong>
-            {% if n.contenu %}
-              <br><small class="text-muted">{{ n.contenu[:100] }}{% if n.contenu|length > 100 %}…{% endif %}</small>
-            {% endif %}
-          </td>
-          <td><small class="text-muted">{{ n.matiere.nom if n.matiere else '' }}</small></td>
-        </tr>
+        {% for vue in activites %}
+          {{ ligne_evenement(vue, montrer_eleve=False) }}
         {% endfor %}
       </tbody>
     </table>
   </div>
   {% else %}
-  <div class="card-body">
-    <p class="text-muted mb-0 fst-italic">Aucun événement de vie scolaire sur cette période.</p>
+  <div class="card-body text-center text-muted py-4">
+    Aucune activité sur cette période.
+    {% if types_creables %}
+    <div class="mt-2">
+      <a href="{{ url_for('vie_scolaire.index', eleve_id=eleve.id) }}" class="btn btn-sm btn-outline-primary">
+        Ajouter un événement
+      </a>
+    </div>
+    {% endif %}
   </div>
   {% endif %}
 </div>
+<p class="text-muted small">Cliquez sur une activité pour ouvrir sa fiche.</p>
 
 {% endblock %}

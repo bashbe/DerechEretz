@@ -7,6 +7,33 @@
   </div>
 {% endmacro %}
 
+{% macro ligne_evenement(vue, montrer_eleve=True) %}
+  {# Rendu commun d'un événement : utilisé par la fiche élève, la liste Vie
+     scolaire et tout futur feed — ne pas dupliquer ce rendu ailleurs. #}
+  <tr style="cursor:pointer"
+      onclick="window.location='{{ url_for('vie_scolaire.evenement_fiche', type_evt=vue.type, evt_id=vue.id) }}'">
+    <td class="text-nowrap">
+      {{ vue.date.strftime('%d/%m/%Y') if vue.date else '—' }}
+      {% if vue.heure %}<small class="text-muted ms-1">{{ vue.heure.strftime('%H:%M') }}</small>{% endif %}
+    </td>
+    {% if montrer_eleve %}
+    <td>
+      {{ vue.eleve.nom_complet }}
+      <small class="text-muted d-block">{{ vue.eleve.classe.nom }}</small>
+    </td>
+    {% endif %}
+    <td><span class="badge {{ vue.badge }}">{{ vue.libelle_type }}</span></td>
+    <td>
+      {{ vue.resume }}
+      {% if vue.points_deduits %}
+        <small class="text-danger ms-1">−{{ vue.points_deduits }} pt{{ 's' if vue.points_deduits > 1 }}</small>
+      {% endif %}
+      {% if vue.complement %}<br><small class="text-muted">{{ vue.complement }}</small>{% endif %}
+    </td>
+    <td><small class="text-muted">{{ vue.matiere.nom if vue.matiere else '' }}</small></td>
+  </tr>
+{% endmacro %}
+
 {% macro champ(field) %}
   <div class="mb-3">
     {{ field.label(class="form-label") }}

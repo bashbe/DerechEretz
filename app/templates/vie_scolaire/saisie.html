@@ -5,7 +5,7 @@
 <div class="mb-3">
   <nav aria-label="breadcrumb">
     <ol class="breadcrumb mb-1">
-      <li class="breadcrumb-item"><a href="{{ url_for('notes.liste') }}">Notes</a></li>
+      <li class="breadcrumb-item"><a href="{{ url_for('vie_scolaire.controles') }}">Notes</a></li>
       <li class="breadcrumb-item active">{{ controle.intitule }}</li>
     </ol>
   </nav>
@@ -57,7 +57,7 @@
     </div>
   </div>
   <button type="submit" class="btn btn-primary">Enregistrer les notes</button>
-  <a href="{{ url_for('notes.liste') }}" class="btn btn-outline-secondary ms-2">Retour</a>
+  <a href="{{ url_for('vie_scolaire.controles') }}" class="btn btn-outline-secondary ms-2">Retour</a>
 </form>
 
 {% endblock %}

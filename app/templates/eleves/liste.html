@@ -9,31 +9,26 @@
   <p class="text-muted">Aucune classe enregistrée.</p>
 {% endif %}
 
-{% for classe in classes %}
-<h5 class="mt-4 text-secondary">{{ classe }}</h5>
-<table class="table table-hover table-sm">
-  <thead class="table-light">
-    <tr>
-      <th>Nom</th>
-      <th>Prénom</th>
-      <th class="text-end">Points vie scolaire</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for eleve in classe.eleves | sort(attribute='nom') %}
-    <tr style="cursor:pointer" onclick="window.location='{{ url_for('eleves.fiche', eleve_id=eleve.id) }}'">
-      <td>{{ eleve.nom }}</td>
-      <td>{{ eleve.prenom }}</td>
-      <td class="text-end">
-        <span class="badge {% if eleve.points_vie_scolaire < 10 %}bg-danger{% elif eleve.points_vie_scolaire < 15 %}bg-warning text-dark{% else %}bg-success{% endif %}">
-          {{ eleve.points_vie_scolaire }}/20
-        </span>
-      </td>
-    </tr>
-    {% else %}
-    <tr><td colspan="3" class="text-muted fst-italic">Aucun élève dans cette classe.</td></tr>
-    {% endfor %}
-  </tbody>
-</table>
-{% endfor %}
+<div class="row g-3">
+  {% for classe in classes %}
+  <div class="col-md-6 col-lg-4">
+    <div class="card h-100">
+      <div class="card-header fw-semibold d-flex justify-content-between align-items-center">
+        {{ classe.nom }}
+        <span class="badge bg-secondary">{{ classe.eleves|length }}</span>
+      </div>
+      <div class="list-group list-group-flush">
+        {% for eleve in classe.eleves | sort(attribute='nom') %}
+          <a href="{{ url_for('eleves.fiche', eleve_id=eleve.id) }}"
+             class="list-group-item list-group-item-action py-2">
+            <span class="fw-semibold">{{ eleve.nom }}</span> {{ eleve.prenom }}
+          </a>
+        {% else %}
+          <div class="list-group-item text-muted fst-italic">Aucun élève dans cette classe.</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
 {% endblock %}

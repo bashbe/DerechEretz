@@ -3,8 +3,16 @@
 {% block content %}
 
 <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-  <h2 class="mb-0">Notes — Contrôles</h2>
-  <a href="{{ url_for('notes.controle_nouveau') }}" class="btn btn-sm btn-primary">
+  <div>
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb mb-1">
+        <li class="breadcrumb-item"><a href="{{ url_for('vie_scolaire.index') }}">Vie scolaire</a></li>
+        <li class="breadcrumb-item active">Notes — Contrôles</li>
+      </ol>
+    </nav>
+    <h2 class="mb-0">Notes — Contrôles</h2>
+  </div>
+  <a href="{{ url_for('vie_scolaire.controle_nouveau') }}" class="btn btn-sm btn-primary">
     + Nouveau contrôle
   </a>
 </div>
@@ -58,7 +66,7 @@
         <tr>
           <td>{{ c.date.strftime('%d/%m/%Y') }}</td>
           <td>
-            <a href="{{ url_for('notes.controle_saisie', controle_id=c.id) }}">{{ c.intitule }}</a>
+            <a href="{{ url_for('vie_scolaire.controle_saisie', controle_id=c.id) }}">{{ c.intitule }}</a>
           </td>
           <td><small class="text-muted">{{ c.classe.nom }}</small></td>
           <td><small class="text-muted">{{ c.matiere.nom }}</small></td>
@@ -68,9 +76,9 @@
             <span class="badge bg-secondary">{{ c.notes|length }}/{{ c.classe.eleves|length }}</span>
           </td>
           <td class="text-end">
-            <a href="{{ url_for('notes.controle_saisie', controle_id=c.id) }}"
+            <a href="{{ url_for('vie_scolaire.controle_saisie', controle_id=c.id) }}"
                class="btn btn-xs btn-outline-primary btn-sm">Saisir</a>
-            <form method="post" action="{{ url_for('notes.controle_supprimer', controle_id=c.id) }}"
+            <form method="post" action="{{ url_for('vie_scolaire.controle_supprimer', controle_id=c.id) }}"
                   class="d-inline" onsubmit="return confirm('Supprimer ce contrôle et toutes ses notes ?')">
               <button class="btn btn-sm btn-outline-danger">Suppr.</button>
             </form>

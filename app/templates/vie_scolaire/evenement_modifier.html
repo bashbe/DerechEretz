@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% block title %}Modifier — {{ vue.libelle_type }}{% endblock %}
+{% block content %}
+
+<div class="mb-3">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb mb-1">
+      <li class="breadcrumb-item"><a href="{{ url_for('vie_scolaire.index') }}">Vie scolaire</a></li>
+      <li class="breadcrumb-item"><a href="{{ url_for('vie_scolaire.evenements_liste') }}">Événements</a></li>
+      <li class="breadcrumb-item">
+        <a href="{{ url_for('vie_scolaire.evenement_fiche', type_evt=vue.type, evt_id=vue.id) }}">{{ vue.libelle_type }}</a>
+      </li>
+      <li class="breadcrumb-item active">Modifier</li>
+    </ol>
+  </nav>
+  <h2 class="mb-0">Modifier — <span class="badge {{ vue.badge }} fs-6 align-middle">{{ vue.libelle_type }}</span></h2>
+  <small class="text-muted">{{ vue.eleve.nom_complet }} · {{ vue.eleve.classe.nom }}</small>
+</div>
+
+<div class="card" style="max-width: 40rem">
+  <div class="card-body">
+    <form method="post">
+
+      <div class="mb-3" style="max-width: 14rem">
+        <label class="form-label fw-semibold">Date</label>
+        <input type="date" name="date" class="form-control"
+               value="{{ vue.obj.date.isoformat() if vue.obj.date }}">
+      </div>
+
+      {% if vue.type == 'note' %}
+        <div class="mb-3" style="max-width: 10rem">
+          <label class="form-label fw-semibold">Note /20</label>
+          <input type="number" name="valeur" class="form-control" min="0" max="20" step="0.5"
+                 value="{{ vue.obj.valeur }}" required>
+        </div>
+      {% elif vue.type == 'observation' %}
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Titre</label>
+          <input type="text" name="titre" class="form-control" value="{{ vue.obj.titre }}" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Contenu</label>
+          <textarea name="contenu" class="form-control" rows="4" required>{{ vue.obj.contenu }}</textarea>
+        </div>
+      {% elif vue.type == 'infraction_mineure' %}
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Infraction (barème)</label>
+          <select name="type_infraction_id" class="form-select">
+            {% for t in types_infractions %}
+              <option value="{{ t.id }}" {% if t.id == vue.obj.type_infraction_id %}selected{% endif %}>
+                {{ t.libelle }} (−{{ t.points_deduits }} pt{{ 's' if t.points_deduits > 1 }})
+              </option>
+            {% endfor %}
+          </select>
+          <small class="text-muted">Le solde de points de l'élève sera recalculé.</small>
+        </div>
+      {% elif vue.type == 'infraction_majeure' %}
+        <div class="mb-3" style="max-width: 14rem">
+          <label class="form-label fw-semibold">Gravité</label>
+          <select name="gravite" class="form-select">
+            {% for code, libelle in [("mineure_grave", "Mineure grave"), ("moyenne", "Moyenne"), ("majeure", "Majeure")] %}
+              <option value="{{ code }}" {% if vue.obj.gravite == code %}selected{% endif %}>{{ libelle }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Description</label>
+          <textarea name="description" class="form-control" rows="3" required>{{ vue.obj.description }}</textarea>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Sanction (optionnel)</label>
+          <input type="text" name="sanction" class="form-control" value="{{ vue.obj.sanction or '' }}">
+        </div>
+      {% elif vue.type == 'presence' %}
+        <div class="row g-2 mb-3">
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Statut</label>
+            <select name="statut" class="form-select">
+              {% for code, libelle in [("present", "Présent"), ("absent", "Absent"), ("retard", "Retard")] %}
+                <option value="{{ code }}" {% if vue.obj.statut == code %}selected{% endif %}>{{ libelle }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Heure d'arrivée</label>
+            <input type="time" name="heure" class="form-control"
+                   value="{{ vue.obj.heure_arrivee.strftime('%H:%M') if vue.obj.heure_arrivee }}">
+          </div>
+          <div class="col-md-4 d-flex align-items-end">
+            <div class="form-check mb-2">
+              <input type="checkbox" name="justifie" value="1" class="form-check-input" id="champ-justifie"
+                     {% if vue.obj.justifie %}checked{% endif %}>
+              <label class="form-check-label" for="champ-justifie">Justifié</label>
+            </div>
+          </div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Motif</label>
+          <input type="text" name="motif" class="form-control" value="{{ vue.obj.motif or '' }}">
+        </div>
+      {% endif %}
+
+      {% if vue.type != 'presence' %}
+      <div class="mb-3" style="max-width: 20rem">
+        <label class="form-label fw-semibold">Matière <span class="fw-normal text-muted">(optionnel)</span></label>
+        <select name="matiere_id" class="form-select">
+          <option value="">—</option>
+          {% for m in matieres %}
+            <option value="{{ m.id }}" {% if vue.obj.matiere_id == m.id %}selected{% endif %}>{{ m.nom }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      {% endif %}
+
+      <button type="submit" class="btn btn-primary">Enregistrer</button>
+      <a href="{{ url_for('vie_scolaire.evenement_fiche', type_evt=vue.type, evt_id=vue.id) }}"
+         class="btn btn-outline-secondary ms-2">Annuler</a>
+    </form>
+  </div>
+</div>
+
+{% endblock %}

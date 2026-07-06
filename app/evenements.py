@@ -244,6 +244,13 @@ def feed(date_debut, date_fin, eleve_id=None, classe_id=None, types=None, user=N
     return vues
 
 
+def visible_pour(vue, user):
+    """Un utilisateur peut-il voir cet événement ? (mêmes règles que le feed)."""
+    if user is None or not user.is_professeur():
+        return True
+    return bool(_appliquer_filtre_professeur([vue], user))
+
+
 def charger(type_evt, evt_id):
     """Retourne l'`EvenementView` (type, id), ou None si type/ligne inconnus."""
     modele = _MODELES.get(type_evt)
