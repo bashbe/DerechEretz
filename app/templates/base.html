@@ -23,60 +23,63 @@
       <div class="collapse navbar-collapse" id="navMain">
         <ul class="navbar-nav me-auto">
 
-          {# Élèves — tous les rôles (Phase 2) #}
+          {# Élèves — tous les rôles #}
           <li class="nav-item">
             <a class="nav-link {% if request.blueprint == 'eleves' %}active{% endif %}"
                href="{{ url_for('eleves.liste') }}">Élèves</a>
           </li>
 
-          {# Présences — directeur + surveillant (Phase 3 : /presences ; provisoire : ancienne route) #}
-          {% if current_user.is_surveillant() %}
-            <li class="nav-item">
-              <a class="nav-link {% if request.blueprint == 'surveillant' and 'absences' in request.endpoint %}active{% endif %}"
-                 href="{{ url_for('surveillant.absences_du_jour') }}">Présences</a>
-            </li>
+          {# Présences — directeur + surveillant #}
+          {% if current_user.is_directeur() or current_user.is_surveillant() %}
+          <li class="nav-item">
+            <a class="nav-link {% if request.blueprint == 'presences' %}active{% endif %}"
+               href="{{ url_for('presences.liste') }}">Présences</a>
+          </li>
           {% endif %}
 
-          {# Notes — directeur + professeur (Phase 4 : /notes ; provisoire : dashboard prof) #}
-          {% if current_user.is_professeur() %}
-            <li class="nav-item">
-              <a class="nav-link {% if request.blueprint == 'professeur' %}active{% endif %}"
-                 href="{{ url_for('main.dashboard_professeur') }}">Notes</a>
-            </li>
+          {# Notes — directeur + professeur #}
+          {% if current_user.is_directeur() or current_user.is_professeur() %}
+          <li class="nav-item">
+            <a class="nav-link {% if request.blueprint == 'notes' %}active{% endif %}"
+               href="{{ url_for('notes.liste') }}">Notes</a>
+          </li>
           {% endif %}
 
-          {# Vie scolaire — directeur + surveillant (Phase 5 : /vie-scolaire ; provisoire) #}
-          {% if current_user.is_surveillant() %}
-            <li class="nav-item">
-              <a class="nav-link {% if request.blueprint == 'surveillant' and ('infraction' in request.endpoint or 'incident' in request.endpoint) %}active{% endif %}"
-                 href="{{ url_for('surveillant.infractions') }}">Vie scolaire</a>
-            </li>
+          {# Vie scolaire — directeur + surveillant #}
+          {% if current_user.is_directeur() or current_user.is_surveillant() %}
+          <li class="nav-item">
+            <a class="nav-link {% if request.blueprint == 'vie_scolaire' %}active{% endif %}"
+               href="{{ url_for('vie_scolaire.liste') }}">Vie scolaire</a>
+          </li>
           {% endif %}
 
-          {# Rapports — directeur + surveillant (Phase 6 : /rapports ; provisoire directeur) #}
+          {# Rapports — directeur + surveillant #}
+          {% if current_user.is_directeur() or current_user.is_surveillant() %}
+          <li class="nav-item">
+            <a class="nav-link {% if request.blueprint == 'rapports' %}active{% endif %}"
+               href="{{ url_for('rapports.liste') }}">Rapports</a>
+          </li>
+          {% endif %}
+
+          {# Admin — directeur uniquement #}
           {% if current_user.is_directeur() %}
-            <li class="nav-item">
-              <a class="nav-link {% if request.blueprint == 'directeur' and 'rapport' in request.endpoint %}active{% endif %}"
-                 href="{{ url_for('directeur.rapports') }}">Rapports</a>
-            </li>
-          {% endif %}
-
-          {# Admin — directeur uniquement (Phase 7 : /admin ; provisoire dropdown) #}
-          {% if current_user.is_directeur() %}
-            <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle {% if request.blueprint == 'directeur' and 'rapport' not in request.endpoint %}active{% endif %}"
-                 href="#" data-bs-toggle="dropdown">Admin</a>
-              <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="{{ url_for('directeur.eleves') }}">Élèves</a></li>
-                <li><a class="dropdown-item" href="{{ url_for('directeur.classes') }}">Classes</a></li>
-                <li><a class="dropdown-item" href="{{ url_for('directeur.matieres') }}">Matières</a></li>
-                <li><a class="dropdown-item" href="{{ url_for('directeur.affectations') }}">Affectations</a></li>
-                <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item" href="{{ url_for('directeur.comptes') }}">Comptes</a></li>
-                <li><a class="dropdown-item" href="{{ url_for('directeur.bareme') }}">Barème infractions</a></li>
-                <li><a class="dropdown-item" href="{{ url_for('directeur.discipline_cycles') }}">Cycles discipline</a></li>
-              </ul>
-            </li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle {% if request.blueprint == 'admin' %}active{% endif %}"
+               href="#" data-bs-toggle="dropdown">Admin</a>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="{{ url_for('admin.eleves') }}">Élèves</a></li>
+              <li><a class="dropdown-item" href="{{ url_for('admin.classes') }}">Classes</a></li>
+              <li><a class="dropdown-item" href="{{ url_for('admin.matieres') }}">Matières</a></li>
+              <li><a class="dropdown-item" href="{{ url_for('admin.affectations') }}">Affectations</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item" href="{{ url_for('admin.comptes') }}">Comptes</a></li>
+              <li><a class="dropdown-item" href="{{ url_for('admin.bareme') }}">Barème infractions</a></li>
+              <li><a class="dropdown-item" href="{{ url_for('admin.cycles') }}">Cycles discipline</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item" href="{{ url_for('admin.annees') }}">Années scolaires</a></li>
+              <li><a class="dropdown-item" href="{{ url_for('admin.trimestres') }}">Trimestres</a></li>
+            </ul>
+          </li>
           {% endif %}
 
         </ul>

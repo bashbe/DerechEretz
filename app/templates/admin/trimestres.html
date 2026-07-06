@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% from "_macros.html" import bouton_supprimer %}
+{% block title %}Trimestres{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h3">Trimestres</h1>
+  <a href="{{ url_for('admin.trimestre_nouveau') }}" class="btn btn-primary">+ Nouveau trimestre</a>
+</div>
+<table class="table table-striped">
+  <thead><tr><th>Année</th><th>Code</th><th>Début</th><th>Fin</th><th></th></tr></thead>
+  <tbody>
+  {% for t in trimestres %}
+    <tr>
+      <td>{{ t.annee.libelle }}</td>
+      <td>{{ t.code }}</td>
+      <td>{{ t.date_debut.strftime('%d/%m/%Y') }}</td>
+      <td>{{ t.date_fin.strftime('%d/%m/%Y') }}</td>
+      <td class="text-end">
+        <a href="{{ url_for('admin.trimestre_modifier', trimestre_id=t.id) }}" class="btn btn-sm btn-outline-secondary">Modifier</a>
+        {{ bouton_supprimer(url_for('admin.trimestre_supprimer', trimestre_id=t.id)) }}
+      </td>
+    </tr>
+  {% else %}
+    <tr><td colspan="5" class="text-muted">Aucun trimestre.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
