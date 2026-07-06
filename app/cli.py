@@ -19,3 +19,19 @@ def register_cli(app):
         db.session.add(user)
         db.session.commit()
         click.echo(f"Compte directeur créé : {email}")
+
+    @app.cli.command("seed-demo")
+    def seed_demo():
+        """Charge 3 classes × 20 élèves avec un historique complet (notes, présences,
+        infractions, incidents, notices, contacts parents).
+
+        Comptes créés (mot de passe demo123) :
+          demo@ecole.fr         — directeur
+          prof.maths@demo.fr    — professeur (Mathématiques, Sciences, Sport)
+          prof.lettres@demo.fr  — professeur (Français, Histoire-Géo)
+          surveillant@demo.fr   — surveillant
+        """
+        from demo.seed import run_seed
+
+        msg = run_seed(app)
+        click.echo(msg)
