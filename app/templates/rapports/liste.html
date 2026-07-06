@@ -4,91 +4,120 @@
 
 <h2 class="mb-4">Rapports</h2>
 
-<div class="row g-4 mb-5">
+<div class="card mb-5">
+  <div class="card-header fw-semibold">Générer un rapport</div>
+  <div class="card-body">
+    <form method="post" action="{{ url_for('rapports.generer') }}">
 
-  {# Notes #}
-  <div class="col-md-4">
-    <div class="card h-100">
-      <div class="card-header fw-semibold">Rapport de notes</div>
-      <div class="card-body">
-        <form method="post" action="{{ url_for('rapports.rapport_notes') }}">
-          <div class="mb-2">
-            <select name="classe_id" class="form-select form-select-sm" required>
-              <option value="">Choisir une classe…</option>
+      <div class="row g-4">
+
+        {# --- Portée : école / classe(s) / élève(s) --- #}
+        <div class="col-md-4">
+          <div class="fw-semibold small mb-2">Élèves concernés</div>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="portee" value="ecole" id="portee-ecole" checked
+                   onchange="document.getElementById('bloc-classe').hidden=true; document.getElementById('bloc-eleves').hidden=true;">
+            <label class="form-check-label" for="portee-ecole">École entière</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="portee" value="classe" id="portee-classe"
+                   onchange="document.getElementById('bloc-classe').hidden=false; document.getElementById('bloc-eleves').hidden=true;">
+            <label class="form-check-label" for="portee-classe">Une ou plusieurs classes</label>
+          </div>
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="radio" name="portee" value="eleves" id="portee-eleves"
+                   onchange="document.getElementById('bloc-classe').hidden=true; document.getElementById('bloc-eleves').hidden=false;">
+            <label class="form-check-label" for="portee-eleves">Élève(s) spécifique(s)</label>
+          </div>
+
+          <div id="bloc-classe" hidden>
+            <select name="classe_ids" class="form-select form-select-sm" multiple size="5">
               {% for c in classes %}
                 <option value="{{ c.id }}">{{ c.nom }}</option>
               {% endfor %}
             </select>
+            <div class="form-text">Ctrl/Cmd + clic pour en choisir plusieurs.</div>
           </div>
-          <div class="mb-3">
-            <select name="trimestre" class="form-select form-select-sm" required>
-              <option value="T1">Trimestre 1</option>
-              <option value="T2">Trimestre 2</option>
-              <option value="T3">Trimestre 3</option>
-            </select>
-          </div>
-          <button type="submit" class="btn btn-sm btn-primary w-100">Générer</button>
-        </form>
-      </div>
-    </div>
-  </div>
 
-  {# Absences #}
-  <div class="col-md-4">
-    <div class="card h-100">
-      <div class="card-header fw-semibold">Rapport d'absences</div>
-      <div class="card-body">
-        <form method="post" action="{{ url_for('rapports.rapport_absences') }}">
-          <div class="mb-2">
-            <select name="classe_id" class="form-select form-select-sm" required>
-              <option value="">Choisir une classe…</option>
-              {% for c in classes %}
-                <option value="{{ c.id }}">{{ c.nom }}</option>
+          <div id="bloc-eleves" hidden>
+            <select name="eleve_ids" class="form-select form-select-sm" multiple size="5">
+              {% for e in eleves %}
+                <option value="{{ e.id }}">{{ e.nom_complet }} ({{ e.classe.nom }})</option>
+              {% endfor %}
+            </select>
+            <div class="form-text">Ctrl/Cmd + clic pour en choisir plusieurs.</div>
+          </div>
+        </div>
+
+        {# --- Période : mois / trimestre / année / cycle / personnalisée --- #}
+        <div class="col-md-4">
+          <div class="fw-semibold small mb-2">Période</div>
+          <select name="periode_type" class="form-select form-select-sm mb-2" id="periode-type" onchange="
+            document.getElementById('periode-mois').hidden = this.value !== 'mois';
+            document.getElementById('periode-trimestre').hidden = this.value !== 'trimestre';
+            document.getElementById('periode-annee').hidden = this.value !== 'annee';
+            document.getElementById('periode-cycle').hidden = this.value !== 'cycle';
+            document.getElementById('periode-personnalise').hidden = this.value !== 'personnalise';
+          ">
+            <option value="mois">Mois</option>
+            <option value="trimestre">Trimestre</option>
+            <option value="annee">Année scolaire</option>
+            <option value="cycle">Cycle de discipline</option>
+            <option value="personnalise">Plage personnalisée</option>
+          </select>
+
+          <div id="periode-mois">
+            <input type="month" name="mois" class="form-control form-control-sm">
+          </div>
+          <div id="periode-trimestre" hidden>
+            <select name="trimestre_id" class="form-select form-select-sm">
+              {% for t in trimestres %}
+                <option value="{{ t.id }}">{{ t.code }} ({{ t.date_debut.strftime('%d/%m/%Y') }} – {{ t.date_fin.strftime('%d/%m/%Y') }})</option>
               {% endfor %}
             </select>
           </div>
-          <div class="mb-2">
-            <select name="periode" class="form-select form-select-sm" required>
-              <option value="mois">Mois</option>
-              <option value="trimestre">Trimestre</option>
-              <option value="annee">Année scolaire</option>
-              <option value="cycle">Cycle de discipline</option>
+          <div id="periode-annee" hidden>
+            <select name="annee_id" class="form-select form-select-sm">
+              {% for a in annees %}
+                <option value="{{ a.id }}">{{ a.libelle }}{% if a.active %} (active){% endif %}</option>
+              {% endfor %}
             </select>
           </div>
-          <div class="mb-3">
-            <input type="date" name="reference" class="form-control form-control-sm">
-            <div class="form-text">Une date dans la période visée (vide = période en cours).</div>
-          </div>
-          <button type="submit" class="btn btn-sm btn-primary w-100">Générer</button>
-        </form>
-      </div>
-    </div>
-  </div>
-
-  {# Discipline #}
-  <div class="col-md-4">
-    <div class="card h-100">
-      <div class="card-header fw-semibold">Rapport de discipline</div>
-      <div class="card-body">
-        <form method="post" action="{{ url_for('rapports.rapport_discipline') }}">
-          <div class="mb-3">
-            <select name="cycle_id" class="form-select form-select-sm" required>
-              <option value="">Choisir un cycle clôturé…</option>
+          <div id="periode-cycle" hidden>
+            <select name="cycle_id" class="form-select form-select-sm">
               {% for cy in cycles %}
-                {% if cy.est_cloture %}
-                  <option value="{{ cy.id }}">
-                    {{ cy.date_debut.strftime('%d/%m/%Y') }} – {{ cy.date_fin.strftime('%d/%m/%Y') }}
-                  </option>
-                {% endif %}
+                <option value="{{ cy.id }}">
+                  {{ cy.date_debut.strftime('%d/%m/%Y') }} – {{ cy.date_fin.strftime('%d/%m/%Y') }}
+                  {% if cy.est_cloture %}(clôturé){% else %}(actif){% endif %}
+                </option>
               {% endfor %}
             </select>
           </div>
-          <button type="submit" class="btn btn-sm btn-primary w-100">Générer</button>
-        </form>
-      </div>
-    </div>
-  </div>
+          <div id="periode-personnalise" hidden>
+            <label class="form-label small mb-0">Du</label>
+            <input type="date" name="date_debut" class="form-control form-control-sm mb-2">
+            <label class="form-label small mb-0">Au</label>
+            <input type="date" name="date_fin" class="form-control form-control-sm">
+          </div>
+        </div>
 
+        {# --- Événements à inclure --- #}
+        <div class="col-md-4">
+          <div class="fw-semibold small mb-2">Événements à inclure</div>
+          {% for code in types_evenements %}
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="types" value="{{ code }}" id="type-{{ code }}" checked>
+            <label class="form-check-label" for="type-{{ code }}">{{ libelles_types[code] }}</label>
+          </div>
+          {% endfor %}
+        </div>
+
+      </div>
+
+      <button type="submit" class="btn btn-primary mt-4">Générer le rapport</button>
+      <div class="form-text mt-1">Chaque élève occupe sa propre page dans le PDF (nom en en-tête, puis ses événements).</div>
+    </form>
+  </div>
 </div>
 
 {# Historique #}
@@ -104,6 +133,7 @@
           <th>Titre</th>
           <th>PDF</th>
           <th>Excel</th>
+          <th></th>
         </tr>
       </thead>
       <tbody>
@@ -112,9 +142,9 @@
           <td>{{ r.date_creation.strftime('%d/%m/%Y %H:%M') }}</td>
           <td>
             <span class="badge
-              {% if r.type == 'notes' %}bg-primary
-              {% elif r.type == 'absences' %}bg-warning text-dark
-              {% else %}bg-secondary{% endif %}">
+              {% if r.type == 'evenements' %}bg-primary
+              {% elif r.type == 'discipline' %}bg-secondary
+              {% else %}bg-info text-dark{% endif %}">
               {{ r.type }}
             </span>
           </td>
@@ -130,6 +160,12 @@
               <a href="{{ url_for('rapports.telecharger', rapport_id=r.id, format='excel') }}"
                  class="btn btn-xs btn-sm btn-outline-success">Excel</a>
             {% else %}—{% endif %}
+          </td>
+          <td>
+            <form method="post" action="{{ url_for('rapports.supprimer', rapport_id=r.id) }}"
+                  onsubmit="return confirm('Supprimer définitivement ce rapport ?');" class="d-inline">
+              <button type="submit" class="btn btn-sm btn-outline-danger">Supprimer</button>
+            </form>
           </td>
         </tr>
         {% endfor %}

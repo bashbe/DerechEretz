@@ -5,10 +5,9 @@ from flask import current_app
 from openpyxl import Workbook
 from xhtml2pdf import pisa
 
+from app import evenements
 from app.extensions import db
-from app.models import Eleve, InfractionMineure, Note, Presence, RapportGenere
-from app.services import calculer_moyenne_generale, calculer_moyenne_matiere
-from app.models import Matiere
+from app.models import InfractionMineure, RapportGenere
 
 
 def _dossier_rapports():
@@ -26,115 +25,70 @@ def _ecrire_pdf(html, chemin):
         pisa.CreatePDF(html, dest=fichier)
 
 
-def generer_rapport_notes(classe, trimestre):
-    matieres = Matiere.query.order_by(Matiere.nom).all()
-    lignes = []
-    for eleve in sorted(classe.eleves, key=lambda e: e.nom):
-        moyennes_matieres = {
-            m.nom: calculer_moyenne_matiere(eleve.id, m.id, trimestre) for m in matieres
-        }
-        moyenne_generale = calculer_moyenne_generale(eleve.id, trimestre)
-        lignes.append((eleve, moyennes_matieres, moyenne_generale))
-
-    titre = f"Notes {classe.nom} - {trimestre}"
+def generer_rapport_evenements(eleves, date_debut, date_fin, types_evenements, libelle_periode):
+    """Rapport générique : une page PDF par élève, listant ses événements
+    (notes, observations, infractions, présences — selon `types_evenements`)
+    sur `date_debut`..`date_fin`. `eleves` peut être un ou plusieurs élèves,
+    une classe entière ou l'école entière — l'appelant filtre déjà la liste.
+    """
+    eleves_tries = sorted(eleves, key=lambda e: (e.classe.nom, e.nom))
+    periode_str = f"{date_debut.strftime('%d/%m/%Y')} → {date_fin.strftime('%d/%m/%Y')}"
+    titre = f"Rapport d'événements — {libelle_periode} ({periode_str})"
     horodatage = _horodatage()
 
-    html = _render_html_notes(classe, trimestre, matieres, lignes)
-    chemin_pdf = os.path.join(_dossier_rapports(), f"notes_{classe.id}_{trimestre}_{horodatage}.pdf")
+    pages_html = []
+    lignes_excel = []
+    for i, eleve in enumerate(eleves_tries):
+        vues = evenements.feed(
+            date_debut, date_fin, eleve_id=eleve.id, types=types_evenements
+        )
+        if vues:
+            corps = "".join(
+                f"<tr><td>{v.date.strftime('%d/%m/%Y') if v.date else '-'}</td>"
+                f"<td>{v.libelle_type}</td>"
+                f"<td>{v.matiere.nom if v.matiere else '-'}</td>"
+                f"<td>{v.resume}{' — ' + v.complement if v.complement else ''}</td></tr>"
+                for v in vues
+            )
+        else:
+            corps = '<tr><td colspan="4"><i>Aucun événement sur cette période.</i></td></tr>'
+
+        rupture = "page-break-before: always;" if i > 0 else ""
+        pages_html.append(f"""
+        <div style="{rupture}">
+          <h2>{eleve.nom_complet}</h2>
+          <div>{eleve.classe.nom} — {libelle_periode} ({periode_str})</div>
+          <table border="1" cellpadding="4" cellspacing="0" width="100%">
+            <tr><th>Date</th><th>Type</th><th>Matière</th><th>Détail</th></tr>
+            {corps}
+          </table>
+        </div>
+        """)
+
+        for v in vues:
+            lignes_excel.append([
+                eleve.nom_complet,
+                eleve.classe.nom,
+                v.date.strftime("%d/%m/%Y") if v.date else "",
+                v.libelle_type,
+                v.matiere.nom if v.matiere else "",
+                v.resume,
+            ])
+
+    html = f"<html><body>{''.join(pages_html)}</body></html>"
+    chemin_pdf = os.path.join(_dossier_rapports(), f"evenements_{horodatage}.pdf")
     _ecrire_pdf(html, chemin_pdf)
 
-    chemin_excel = os.path.join(
-        _dossier_rapports(), f"notes_{classe.id}_{trimestre}_{horodatage}.xlsx"
-    )
+    chemin_excel = os.path.join(_dossier_rapports(), f"evenements_{horodatage}.xlsx")
     wb = Workbook()
     ws = wb.active
-    ws.append(["Élève"] + [m.nom for m in matieres] + ["Moyenne générale"])
-    for eleve, moyennes_matieres, moyenne_generale in lignes:
-        ws.append(
-            [eleve.nom_complet]
-            + [moyennes_matieres[m.nom] if moyennes_matieres[m.nom] is not None else "" for m in matieres]
-            + [moyenne_generale if moyenne_generale is not None else ""]
-        )
+    ws.append(["Élève", "Classe", "Date", "Type", "Matière", "Détail"])
+    for ligne in lignes_excel:
+        ws.append(ligne)
     wb.save(chemin_excel)
 
     rapport = RapportGenere(
-        type="notes",
-        titre=titre,
-        fichier_pdf=chemin_pdf,
-        fichier_excel=chemin_excel,
-    )
-    db.session.add(rapport)
-    db.session.commit()
-    return rapport
-
-
-def _render_html_notes(classe, trimestre, matieres, lignes):
-    lignes_html = ""
-    for eleve, moyennes_matieres, moyenne_generale in lignes:
-        cellules = "".join(
-            f"<td>{moyennes_matieres[m.nom] if moyennes_matieres[m.nom] is not None else '-'}</td>"
-            for m in matieres
-        )
-        lignes_html += (
-            f"<tr><td>{eleve.nom_complet}</td>{cellules}"
-            f"<td><b>{moyenne_generale if moyenne_generale is not None else '-'}</b></td></tr>"
-        )
-    entetes = "".join(f"<th>{m.nom}</th>" for m in matieres)
-    return f"""
-    <html><body>
-    <h2>Rapport de notes — {classe.nom} — {trimestre}</h2>
-    <table border="1" cellpadding="4" cellspacing="0" width="100%">
-      <tr><th>Élève</th>{entetes}<th>Moyenne générale</th></tr>
-      {lignes_html}
-    </table>
-    </body></html>
-    """
-
-
-def generer_rapport_absences(classe, date_debut, date_fin):
-    lignes = []
-    for eleve in sorted(classe.eleves, key=lambda e: e.nom):
-        entrees = Presence.query.filter(
-            Presence.eleve_id == eleve.id,
-            Presence.statut != "present",
-            Presence.date >= date_debut,
-            Presence.date <= date_fin,
-        ).all()
-        justifiees = sum(1 for p in entrees if p.statut == "absent" and p.justifie)
-        injustifiees = sum(1 for p in entrees if p.statut == "absent" and not p.justifie)
-        retards = sum(1 for p in entrees if p.statut == "retard")
-        lignes.append((eleve, justifiees, injustifiees, retards))
-
-    periode_str = f"{date_debut.strftime('%d/%m/%Y')} au {date_fin.strftime('%d/%m/%Y')}"
-    titre = f"Absences {classe.nom} — {periode_str}"
-    horodatage = _horodatage()
-
-    lignes_html = "".join(
-        f"<tr><td>{eleve.nom_complet}</td><td>{j}</td><td>{ij}</td><td>{r}</td></tr>"
-        for eleve, j, ij, r in lignes
-    )
-    html = f"""
-    <html><body>
-    <h2>Rapport d'absences — {classe.nom} — {periode_str}</h2>
-    <table border="1" cellpadding="4" cellspacing="0" width="100%">
-      <tr><th>Élève</th><th>Absences justifiées</th><th>Absences injustifiées</th><th>Retards</th></tr>
-      {lignes_html}
-    </table>
-    </body></html>
-    """
-    chemin_pdf = os.path.join(_dossier_rapports(), f"absences_{classe.id}_{horodatage}.pdf")
-    _ecrire_pdf(html, chemin_pdf)
-
-    chemin_excel = os.path.join(_dossier_rapports(), f"absences_{classe.id}_{horodatage}.xlsx")
-    wb = Workbook()
-    ws = wb.active
-    ws.append(["Élève", "Absences justifiées", "Absences injustifiées", "Retards"])
-    for eleve, j, ij, r in lignes:
-        ws.append([eleve.nom_complet, j, ij, r])
-    wb.save(chemin_excel)
-
-    rapport = RapportGenere(
-        type="absences", titre=titre, fichier_pdf=chemin_pdf, fichier_excel=chemin_excel
+        type="evenements", titre=titre, fichier_pdf=chemin_pdf, fichier_excel=chemin_excel
     )
     db.session.add(rapport)
     db.session.commit()
