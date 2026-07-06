@@ -1,0 +1,279 @@
+{% extends "base.html" %}
+{% block title %}Vie scolaire{% endblock %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+  <h2 class="mb-0">Vie scolaire</h2>
+  <a href="{{ url_for('vie_scolaire.evenements_liste') }}" class="btn btn-outline-primary">
+    Voir tous les événements
+  </a>
+</div>
+
+{# --- Raccourcis --- #}
+<div class="row g-3 mb-4">
+  {% if peut_faire_appel %}
+  <div class="col-sm-6 col-lg-4">
+    <a href="{{ url_for('vie_scolaire.appel') }}" class="text-decoration-none">
+      <div class="card h-100 border-success">
+        <div class="card-body d-flex align-items-center gap-3">
+          <div class="fs-2">📋</div>
+          <div>
+            <div class="fw-semibold text-body">Carnet de présence du jour</div>
+            <small class="text-muted">Faire ou corriger l'appel d'une classe</small>
+          </div>
+        </div>
+      </div>
+    </a>
+  </div>
+  {% endif %}
+  {% if "note" in types_creables %}
+  <div class="col-sm-6 col-lg-4">
+    <a href="{{ url_for('vie_scolaire.controles') }}" class="text-decoration-none">
+      <div class="card h-100 border-primary">
+        <div class="card-body d-flex align-items-center gap-3">
+          <div class="fs-2">📝</div>
+          <div>
+            <div class="fw-semibold text-body">Entrer des notes</div>
+            <small class="text-muted">Contrôles et grille de saisie par classe</small>
+          </div>
+        </div>
+      </div>
+    </a>
+  </div>
+  {% endif %}
+  <div class="col-sm-6 col-lg-4">
+    <a href="{{ url_for('vie_scolaire.evenements_liste') }}" class="text-decoration-none">
+      <div class="card h-100 border-secondary">
+        <div class="card-body d-flex align-items-center gap-3">
+          <div class="fs-2">🗂️</div>
+          <div>
+            <div class="fw-semibold text-body">Événements enregistrés</div>
+            <small class="text-muted">Consulter, filtrer, modifier</small>
+          </div>
+        </div>
+      </div>
+    </a>
+  </div>
+</div>
+
+{# --- Formulaire unifié de création --- #}
+{% if types_creables %}
+<div class="card">
+  <div class="card-header fw-semibold">Nouvel événement</div>
+  <div class="card-body">
+    <form method="post" action="{{ url_for('vie_scolaire.evenement_creer') }}" id="form-evenement">
+
+      <div class="row g-3">
+        {# Type #}
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">Type d'événement</label>
+          <select name="type" id="champ-type" class="form-select" required>
+            <option value="">Choisir…</option>
+            {% for code in ["infraction_mineure", "infraction_majeure", "note", "observation", "presence"] %}
+              {% if code in types_creables %}
+                <option value="{{ code }}" {% if type_prefill == code %}selected{% endif %}>
+                  {{ libelles_types[code] }}
+                </option>
+              {% endif %}
+            {% endfor %}
+          </select>
+        </div>
+
+        {# Date / éditeur #}
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">Jour</label>
+          <input type="date" name="date" class="form-control" value="{{ today }}" required>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">Éditeur</label>
+          <input type="text" class="form-control" value="{{ current_user.nom }} ({{ current_user.role }})" disabled>
+        </div>
+      </div>
+
+      {# Cible #}
+      <fieldset class="mt-3">
+        <legend class="form-label fw-semibold fs-6">Élèves concernés</legend>
+        <div class="d-flex gap-3 flex-wrap mb-2">
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="cible" value="selection" id="cible-selection"
+                   {% if eleve_prefill or not current_user.is_surveillant() %}checked{% endif %}>
+            <label class="form-check-label" for="cible-selection">Sélectionner des élèves</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="cible" value="classe" id="cible-classe"
+                   {% if not eleve_prefill and current_user.is_surveillant() %}checked{% endif %}>
+            <label class="form-check-label" for="cible-classe">Toute une classe</label>
+          </div>
+          {% if not current_user.is_professeur() %}
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="cible" value="global" id="cible-global">
+            <label class="form-check-label" for="cible-global">Toute l'école</label>
+          </div>
+          {% endif %}
+        </div>
+
+        <div id="bloc-selection">
+          <select name="eleves_ids" class="form-select" multiple size="8">
+            {% for c in classes %}
+              <optgroup label="{{ c.nom }}">
+                {% for e in c.eleves|sort(attribute='nom') %}
+                  <option value="{{ e.id }}"
+                          {% if eleve_prefill and eleve_prefill.id == e.id %}selected{% endif %}>
+                    {{ e.nom }} {{ e.prenom }}
+                  </option>
+                {% endfor %}
+              </optgroup>
+            {% endfor %}
+          </select>
+          <small class="text-muted">Maintenez Ctrl (ou Cmd) pour sélectionner plusieurs élèves.</small>
+        </div>
+
+        <div id="bloc-classe" class="d-none" style="max-width: 20rem">
+          <select name="classe_id" class="form-select">
+            <option value="">Choisir une classe…</option>
+            {% for c in classes %}
+              <option value="{{ c.id }}">{{ c.nom }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </fieldset>
+
+      {# --- Champs selon le type --- #}
+
+      <div class="mt-3 groupe-type d-none" data-type="infraction_mineure">
+        <label class="form-label fw-semibold">Infraction (barème)</label>
+        <select name="type_infraction_id" class="form-select" style="max-width: 28rem">
+          <option value="">Choisir…</option>
+          {% for t in types_infractions %}
+            <option value="{{ t.id }}">{{ t.libelle }} (−{{ t.points_deduits }} pt{{ 's' if t.points_deduits > 1 }})</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="mt-3 groupe-type d-none" data-type="infraction_majeure">
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Gravité</label>
+            <select name="gravite" class="form-select">
+              <option value="mineure_grave">Mineure grave</option>
+              <option value="moyenne" selected>Moyenne</option>
+              <option value="majeure">Majeure</option>
+            </select>
+          </div>
+          <div class="col-md-8">
+            <label class="form-label fw-semibold">Sanction (optionnel)</label>
+            <input type="text" name="sanction" class="form-control" placeholder="ex : retenue, convocation…">
+          </div>
+          <div class="col-12">
+            <label class="form-label fw-semibold">Description</label>
+            <textarea name="description" class="form-control" rows="3"
+                      placeholder="Décrire les faits…"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-3 groupe-type d-none" data-type="note">
+        <label class="form-label fw-semibold">Note /20</label>
+        <input type="number" name="valeur" class="form-control" min="0" max="20" step="0.5"
+               style="max-width: 10rem" placeholder="ex : 14,5">
+        <small class="text-muted d-block mt-1">
+          Pour noter une classe entière sur un contrôle (avec coefficient), utilisez plutôt
+          <a href="{{ url_for('vie_scolaire.controles') }}">la grille de saisie par contrôle</a>.
+        </small>
+      </div>
+
+      <div class="mt-3 groupe-type d-none" data-type="observation">
+        <div class="mb-2">
+          <label class="form-label fw-semibold">Titre</label>
+          <input type="text" name="titre" class="form-control" style="max-width: 28rem"
+                 placeholder="ex : Félicitations, oubli de matériel…">
+        </div>
+        <label class="form-label fw-semibold">Contenu</label>
+        <textarea name="contenu" class="form-control" rows="3"></textarea>
+      </div>
+
+      <div class="mt-3 groupe-type d-none" data-type="presence">
+        <div class="row g-3">
+          <div class="col-md-3">
+            <label class="form-label fw-semibold">Statut</label>
+            <select name="statut" class="form-select">
+              <option value="absent">Absent</option>
+              <option value="retard">Retard</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label fw-semibold">Heure d'arrivée</label>
+            <input type="time" name="heure" class="form-control">
+          </div>
+          <div class="col-md-2 d-flex align-items-end">
+            <div class="form-check mb-2">
+              <input type="checkbox" name="justifie" value="1" class="form-check-input" id="champ-justifie">
+              <label class="form-check-label" for="champ-justifie">Justifié</label>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Motif (optionnel)</label>
+            <input type="text" name="motif" class="form-control">
+          </div>
+        </div>
+        <small class="text-muted d-block mt-1">
+          Pour l'appel complet d'une classe, utilisez plutôt
+          <a href="{{ url_for('vie_scolaire.appel') }}">le carnet de présence du jour</a>.
+        </small>
+      </div>
+
+      {# Matière (tous types sauf présence) #}
+      <div class="mt-3 d-none" id="bloc-matiere" style="max-width: 20rem">
+        <label class="form-label fw-semibold">
+          Matière {% if not current_user.is_professeur() %}<span class="fw-normal text-muted">(optionnel)</span>{% endif %}
+        </label>
+        <select name="matiere_id" class="form-select" {% if current_user.is_professeur() %}required{% endif %}>
+          <option value="">—</option>
+          {% for m in matieres %}
+            <option value="{{ m.id }}">{{ m.nom }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="mt-4">
+        <button type="submit" class="btn btn-primary">Enregistrer l'événement</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  (function () {
+    const champType = document.getElementById("champ-type");
+    const groupes = document.querySelectorAll(".groupe-type");
+    const blocMatiere = document.getElementById("bloc-matiere");
+    const blocSelection = document.getElementById("bloc-selection");
+    const blocClasse = document.getElementById("bloc-classe");
+
+    function majType() {
+      const type = champType.value;
+      groupes.forEach(g => g.classList.toggle("d-none", g.dataset.type !== type));
+      blocMatiere.classList.toggle("d-none", !type || type === "presence");
+    }
+
+    function majCible() {
+      const cible = document.querySelector("input[name='cible']:checked").value;
+      blocSelection.classList.toggle("d-none", cible !== "selection");
+      blocClasse.classList.toggle("d-none", cible !== "classe");
+    }
+
+    champType.addEventListener("change", majType);
+    document.querySelectorAll("input[name='cible']").forEach(r => r.addEventListener("change", majCible));
+    majType();
+    majCible();
+  })();
+</script>
+
+{% else %}
+<div class="alert alert-light border">
+  Votre rôle ne permet pas de créer d'événement.
+  <a href="{{ url_for('vie_scolaire.evenements_liste') }}">Consulter les événements</a>.
+</div>
+{% endif %}
+
+{% endblock %}

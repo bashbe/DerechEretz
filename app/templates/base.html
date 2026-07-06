@@ -29,29 +29,13 @@
                href="{{ url_for('eleves.liste') }}">Élèves</a>
           </li>
 
-          {# Présences — directeur + surveillant #}
-          {% if current_user.is_directeur() or current_user.is_surveillant() %}
-          <li class="nav-item">
-            <a class="nav-link {% if request.blueprint == 'presences' %}active{% endif %}"
-               href="{{ url_for('presences.liste') }}">Présences</a>
-          </li>
-          {% endif %}
-
-          {# Notes — directeur + professeur #}
-          {% if current_user.is_directeur() or current_user.is_professeur() %}
-          <li class="nav-item">
-            <a class="nav-link {% if request.blueprint == 'notes' %}active{% endif %}"
-               href="{{ url_for('notes.liste') }}">Notes</a>
-          </li>
-          {% endif %}
-
-          {# Vie scolaire — directeur + surveillant #}
-          {% if current_user.is_directeur() or current_user.is_surveillant() %}
+          {# Vie scolaire — hub central des événements (présences, notes,
+             infractions, observations), tous les rôles ; le contenu est
+             adapté par app/permissions.py #}
           <li class="nav-item">
             <a class="nav-link {% if request.blueprint == 'vie_scolaire' %}active{% endif %}"
-               href="{{ url_for('vie_scolaire.liste') }}">Vie scolaire</a>
+               href="{{ url_for('vie_scolaire.index') }}">Vie scolaire</a>
           </li>
-          {% endif %}
 
           {# Rapports — directeur + surveillant #}
           {% if current_user.is_directeur() or current_user.is_surveillant() %}

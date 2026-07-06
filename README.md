@@ -1,34 +1,43 @@
 # Gestion École
 
-Application web de gestion scolaire développée avec Flask. Elle couvre le suivi quotidien des élèves : présences, notes, vie scolaire et rapports, avec trois rôles distincts (directeur, professeur, surveillant).
+Application web de gestion scolaire développée avec Flask. Tout le suivi quotidien des élèves
+(présences, notes, infractions, observations) est présenté comme un **flux d'événements
+unifié**, avec trois rôles distincts (directeur, professeur, surveillant).
+
+L'interface tient en quatre onglets : **Élèves · Vie scolaire · Rapports · Admin**.
 
 ---
 
 ## Fonctionnalités
 
 ### Élèves
-- Liste de tous les élèves groupée par classe
-- **Fiche élève** : identité, contacts parents, solde de points de vie scolaire, moyennes par matière et générale, timeline des présences, timeline de la vie scolaire
-- Sélecteur de période (mois courant, trimestre, année scolaire, cycle de discipline) filtrant toutes les données affichées
+- Liste des élèves (nom, prénom) groupée par classe, cliquable
+- **Fiche élève** : identité, contacts parents, solde de points de vie scolaire, moyennes par
+  matière et générale, et un **rapport d'activités** unifié (notes, absences/retards,
+  infractions, observations) où chaque activité est cliquable vers sa fiche
+- Sélecteur de période (mois courant, trimestre, année scolaire, cycle de discipline) filtrant
+  toutes les données affichées
+- Bouton « Ajouter un événement » pré-rempli avec l'élève (selon la permission)
 
-### Notes
-- Saisie par matière, classe et trimestre
-- Calcul automatique des moyennes par matière (pondérées par coefficient du contrôle) et de la moyenne générale (pondérée par coefficient de matière)
-- Chaque contrôle porte son propre coefficient, indépendant du coefficient de la matière
+### Vie scolaire — hub central des événements
+- **Formulaire unifié « nouvel événement »** : type (infraction mineure/majeure, note,
+  observation, absence/retard — filtré selon le rôle), cible (toute l'école, une classe, une
+  sélection d'élèves), jour, matière optionnelle, éditeur ; les champs affichés s'adaptent au
+  type choisi
+- **Liste des événements** filtrable par période, type, classe et élève ; chaque ligne ouvre
+  une **fiche d'activité** avec modification/suppression selon les compétences
+- Raccourci **carnet de présence du jour** : appel par classe et par date (une seule entrée
+  par élève et par jour, mise à jour au fil de la journée)
+- Raccourci **entrer des notes** : contrôles avec coefficient et grille de saisie par classe
 
-### Présences
-- Appel par classe et par date
-- Statuts : présent, absent, retard (avec heure d'arrivée)
-- Justification et motif facultatif
-- Contrainte : une seule entrée par élève et par jour
-
-### Vie scolaire — système de points
-- Chaque élève démarre avec **20 points**
-- **Infractions mineures** : déduisent des points selon un barème configurable (bavardage, téléphone, insolence…)
-- **Incidents majeurs** : enregistrement de la description, de la gravité et de la sanction
-- **Notices** : observations libres (félicitations, avertissements, encouragements)
-- Tous les événements peuvent être rattachés à une matière (optionnel)
-- **Cycles de discipline** : période ouverte/clôturée ; à la clôture, les points finaux sont figés dans un snapshot et remis à 20
+### Système de points
+- Chaque élève démarre avec **20 points** ; les infractions mineures déduisent des points
+  selon un barème configurable, et le solde est recalculé si une infraction est modifiée ou
+  supprimée
+- Moyennes calculées à part : par matière (pondérées par coefficient du contrôle) et générale
+  (pondérée par coefficient de matière)
+- **Cycles de discipline** : période ouverte/clôturée ; à la clôture, les points finaux sont
+  figés dans un snapshot et remis à 20
 
 ### Rapports
 - Génération de rapports PDF et Excel pour les notes, les absences et la discipline
@@ -49,13 +58,16 @@ Application web de gestion scolaire développée avec Flask. Elle couvre le suiv
 | Fonctionnalité | Directeur | Surveillant | Professeur |
 |---|:---:|:---:|:---:|
 | Fiche élève complète | ✅ | ✅ | ✅ (ses matières) |
-| Présences | ✅ | ✅ | — |
-| Notes & contrôles | ✅ | — | ✅ (ses affectations) |
-| Vie scolaire | ✅ | ✅ | — (lecture partielle) |
+| Créer absences/retards, appel | ✅ | ✅ | — |
+| Créer infractions (mineures/majeures) | ✅ | ✅ | — |
+| Créer notes & contrôles | ✅ | — | ✅ (ses affectations) |
+| Créer observations | ✅ | ✅ | ✅ (ses matières) |
+| Modifier/supprimer un événement | ✅ tous | ✅ vie scolaire | ✅ les siens |
 | Rapports | ✅ | ✅ | — |
 | Administration | ✅ | — | — |
 
-Un professeur ne voit dans la fiche élève que les notes de ses propres matières et les événements de vie scolaire taggués à ces matières.
+Un professeur ne voit dans les feeds que les notes de ses propres matières et les événements
+tagués à ces matières ; il ne voit pas les présences.
 
 ---
 

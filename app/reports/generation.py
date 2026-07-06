@@ -6,7 +6,7 @@ from openpyxl import Workbook
 from xhtml2pdf import pisa
 
 from app.extensions import db
-from app.models import Absence, Eleve, InfractionMineure, Note, RapportGenere
+from app.models import Eleve, InfractionMineure, Note, Presence, RapportGenere
 from app.services import calculer_moyenne_generale, calculer_moyenne_matiere
 from app.models import Matiere
 
@@ -94,10 +94,12 @@ def _render_html_notes(classe, trimestre, matieres, lignes):
 def generer_rapport_absences(classe):
     lignes = []
     for eleve in sorted(classe.eleves, key=lambda e: e.nom):
-        absences = Absence.query.filter_by(eleve_id=eleve.id).all()
-        justifiees = sum(1 for a in absences if a.statut == "justifie")
-        injustifiees = sum(1 for a in absences if a.statut == "injustifie")
-        retards = sum(1 for a in absences if a.type == "retard")
+        entrees = Presence.query.filter(
+            Presence.eleve_id == eleve.id, Presence.statut != "present"
+        ).all()
+        justifiees = sum(1 for p in entrees if p.statut == "absent" and p.justifie)
+        injustifiees = sum(1 for p in entrees if p.statut == "absent" and not p.justifie)
+        retards = sum(1 for p in entrees if p.statut == "retard")
         lignes.append((eleve, justifiees, injustifiees, retards))
 
     titre = f"Absences {classe.nom}"

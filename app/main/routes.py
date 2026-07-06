@@ -10,7 +10,7 @@ def dashboard():
     if current_user.is_directeur():
         return redirect(url_for("eleves.liste"))
     if current_user.is_professeur():
-        return redirect(url_for("notes.liste"))
+        return redirect(url_for("vie_scolaire.index"))
     if current_user.is_surveillant():
-        return redirect(url_for("presences.liste"))
+        return redirect(url_for("vie_scolaire.index"))
     return redirect(url_for("auth.login"))

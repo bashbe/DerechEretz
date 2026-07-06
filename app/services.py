@@ -53,6 +53,25 @@ def appliquer_infraction_mineure(eleve, type_infraction, saisi_par):
     return infraction
 
 
+def recalculer_points(eleve):
+    """Recalcule le solde de points depuis les infractions du cycle ouvert.
+
+    À appeler après modification ou suppression d'une infraction mineure pour
+    que le solde stocké reste cohérent avec les lignes existantes.
+    """
+    from app.models import InfractionMineure
+
+    cycle_actif = CycleDiscipline.query.filter_by(date_cloture=None).first()
+    total_deduit = 0
+    if cycle_actif:
+        infractions = InfractionMineure.query.filter_by(
+            eleve_id=eleve.id, cycle_id=cycle_actif.id
+        ).all()
+        total_deduit = sum(i.type_infraction.points_deduits for i in infractions)
+    eleve.points_vie_scolaire = max(0, POINTS_DEPART - total_deduit)
+    return eleve.points_vie_scolaire
+
+
 def cloturer_cycle(cycle: CycleDiscipline):
     if cycle.est_cloture:
         raise ValueError("Ce cycle de discipline est déjà clôturé.")

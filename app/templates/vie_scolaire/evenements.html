@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% from "_macros.html" import selecteur_periode, ligne_evenement %}
+{% block title %}Événements{% endblock %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+  <div>
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb mb-1">
+        <li class="breadcrumb-item"><a href="{{ url_for('vie_scolaire.index') }}">Vie scolaire</a></li>
+        <li class="breadcrumb-item active">Événements</li>
+      </ol>
+    </nav>
+    <h2 class="mb-0">Événements</h2>
+    <small class="text-muted">{{ date_debut.strftime('%d/%m/%Y') }} → {{ date_fin.strftime('%d/%m/%Y') }}</small>
+  </div>
+  <div class="d-flex gap-2 align-items-center flex-wrap">
+    {{ selecteur_periode(preset, url_for('vie_scolaire.evenements_liste', type=type_filtre or '', classe_id=classe_id or '', eleve_id=eleve_id or '')) }}
+    <a href="{{ url_for('vie_scolaire.index') }}" class="btn btn-sm btn-primary">+ Nouvel événement</a>
+  </div>
+</div>
+
+{# Sous-filtre type : boutons avec compteur #}
+<div class="d-flex gap-2 mb-3 flex-wrap">
+  <a href="{{ url_for('vie_scolaire.evenements_liste', periode=preset, classe_id=classe_id or '', eleve_id=eleve_id or '') }}"
+     class="btn btn-sm {{ 'btn-dark' if not type_filtre else 'btn-outline-dark' }}">
+    Tous <span class="badge bg-light text-dark ms-1">{{ vues|length if not type_filtre else '' }}</span>
+  </a>
+  {% for code, libelle in libelles_types.items() %}
+    <a href="{{ url_for('vie_scolaire.evenements_liste', periode=preset, type=code, classe_id=classe_id or '', eleve_id=eleve_id or '') }}"
+       class="btn btn-sm {{ 'btn-dark' if type_filtre == code else 'btn-outline-secondary' }}">
+      {{ libelle }}{% if compte_par_type.get(code) %} <span class="badge bg-light text-dark ms-1">{{ compte_par_type[code] }}</span>{% endif %}
+    </a>
+  {% endfor %}
+</div>
+
+{# Filtres classe / élève #}
+<form class="row g-2 mb-3 align-items-end" method="get">
+  <input type="hidden" name="periode" value="{{ preset }}">
+  {% if type_filtre %}<input type="hidden" name="type" value="{{ type_filtre }}">{% endif %}
+  <div class="col-auto">
+    <select name="classe_id" class="form-select form-select-sm" onchange="this.form.submit()">
+      <option value="">Toutes les classes</option>
+      {% for c in classes %}
+        <option value="{{ c.id }}" {% if classe_id == c.id %}selected{% endif %}>{{ c.nom }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-auto">
+    <select name="eleve_id" class="form-select form-select-sm" onchange="this.form.submit()">
+      <option value="">Tous les élèves</option>
+      {% for e in eleves %}
+        <option value="{{ e.id }}" {% if eleve_id == e.id %}selected{% endif %}>
+          {{ e.nom_complet }} ({{ e.classe.nom }})
+        </option>
+      {% endfor %}
+    </select>
+  </div>
+</form>
+
+{% if vues %}
+<div class="card">
+  <div class="card-body p-0">
+    <table class="table table-sm table-hover mb-0">
+      <thead class="table-light">
+        <tr><th>Date</th><th>Élève</th><th>Type</th><th>Détail</th><th>Matière</th></tr>
+      </thead>
+      <tbody>
+        {% for vue in vues %}
+          {{ ligne_evenement(vue) }}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+<p class="text-muted small mt-2">Cliquez sur une ligne pour ouvrir la fiche de l'événement.</p>
+{% else %}
+<div class="card">
+  <div class="card-body text-center text-muted py-5">
+    <div class="fs-1 mb-2">🗂️</div>
+    Aucun événement sur cette période{% if type_filtre %} pour ce type{% endif %}.
+    <div class="mt-2">
+      <a href="{{ url_for('vie_scolaire.index') }}" class="btn btn-sm btn-outline-primary">Créer un événement</a>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}

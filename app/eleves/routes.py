@@ -4,17 +4,11 @@ from datetime import date
 from flask import Blueprint, abort, render_template, request
 from flask_login import current_user, login_required
 
+from app import evenements
 from app.extensions import db
-from app.models import (
-    Classe,
-    Eleve,
-    IncidentMajeur,
-    InfractionMineure,
-    Matiere,
-    Notice,
-    Presence,
-)
+from app.models import Classe, Eleve, Matiere
 from app.periodes import resoudre_periode
+from app.permissions import types_evenements_creables
 from app.services import calculer_moyenne_generale_periode, calculer_moyenne_matiere_periode
 
 eleves_bp = Blueprint("eleves", __name__)
@@ -68,51 +62,8 @@ def fiche(eleve_id):
     }
     moyenne_generale = calculer_moyenne_generale_periode(eleve_id, matieres, date_debut, date_fin)
 
-    # Présences uniquement pour directeur et surveillant
-    if matieres_autorisees_ids is None:
-        presences = (
-            Presence.query.filter(
-                Presence.eleve_id == eleve_id,
-                Presence.date >= date_debut,
-                Presence.date <= date_fin,
-            )
-            .order_by(Presence.date.desc())
-            .all()
-        )
-    else:
-        presences = []
-
-    # Vie scolaire : filtrer par matière pour les professeurs
-    q_infractions = InfractionMineure.query.filter(
-        InfractionMineure.eleve_id == eleve_id,
-        InfractionMineure.date >= date_debut,
-        InfractionMineure.date <= date_fin,
-    )
-    q_incidents = IncidentMajeur.query.filter(
-        IncidentMajeur.eleve_id == eleve_id,
-        IncidentMajeur.date >= date_debut,
-        IncidentMajeur.date <= date_fin,
-    )
-    q_notices = Notice.query.filter(
-        Notice.eleve_id == eleve_id,
-        Notice.date >= date_debut,
-        Notice.date <= date_fin,
-    )
-
-    if matieres_autorisees_ids is not None:
-        q_infractions = q_infractions.filter(
-            InfractionMineure.matiere_id.in_(matieres_autorisees_ids)
-        )
-        q_incidents = q_incidents.filter(
-            IncidentMajeur.matiere_id.in_(matieres_autorisees_ids)
-        )
-        q_notices = q_notices.filter(
-            Notice.matiere_id.in_(matieres_autorisees_ids)
-        )
-
-    infractions = q_infractions.order_by(InfractionMineure.date.desc()).all()
-    incidents = q_incidents.order_by(IncidentMajeur.date.desc()).all()
-    notices = q_notices.order_by(Notice.date.desc()).all()
+    # Feed d'activités unifié (le filtrage par rôle est centralisé dans evenements.feed)
+    activites = evenements.feed(date_debut, date_fin, eleve_id=eleve_id, user=current_user)
 
     return render_template(
         "eleves/fiche.html",
@@ -123,9 +74,6 @@ def fiche(eleve_id):
         matieres=matieres,
         moyennes=moyennes,
         moyenne_generale=moyenne_generale,
-        presences=presences,
-        infractions=infractions,
-        incidents=incidents,
-        notices=notices,
-        matieres_autorisees_ids=matieres_autorisees_ids,
+        activites=activites,
+        types_creables=types_evenements_creables(current_user),
     )

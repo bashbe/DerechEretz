@@ -21,8 +21,6 @@ def create_app(config_class=Config):
     from app.auth.routes import auth_bp
     from app.main.routes import main_bp
     from app.eleves.routes import eleves_bp
-    from app.presences.routes import presences_bp
-    from app.notes.routes import notes_bp
     from app.vie_scolaire.routes import vie_scolaire_bp
     from app.rapports.routes import rapports_bp
     from app.admin.routes import admin_bp
@@ -31,8 +29,6 @@ def create_app(config_class=Config):
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
     app.register_blueprint(eleves_bp)
-    app.register_blueprint(presences_bp)
-    app.register_blueprint(notes_bp)
     app.register_blueprint(vie_scolaire_bp)
     app.register_blueprint(rapports_bp)
     app.register_blueprint(admin_bp)

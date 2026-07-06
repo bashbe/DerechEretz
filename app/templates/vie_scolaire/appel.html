@@ -6,8 +6,8 @@
   <div>
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb mb-1">
-        <li class="breadcrumb-item"><a href="{{ url_for('presences.liste') }}">Présences</a></li>
-        <li class="breadcrumb-item active">Appel</li>
+        <li class="breadcrumb-item"><a href="{{ url_for('vie_scolaire.index') }}">Vie scolaire</a></li>
+        <li class="breadcrumb-item active">Appel du jour</li>
       </ol>
     </nav>
     <h2 class="mb-0">Appel</h2>
@@ -33,7 +33,7 @@
 </form>
 
 {% if classe and eleves %}
-<form method="post" action="{{ url_for('presences.appel_enregistrer') }}">
+<form method="post" action="{{ url_for('vie_scolaire.appel_enregistrer') }}">
   <input type="hidden" name="classe_id" value="{{ classe.id }}">
   <input type="hidden" name="date" value="{{ date_appel.isoformat() }}">
 
@@ -84,7 +84,7 @@
     </div>
   </div>
   <button type="submit" class="btn btn-primary">Enregistrer l'appel</button>
-  <a href="{{ url_for('presences.liste') }}" class="btn btn-outline-secondary ms-2">Annuler</a>
+  <a href="{{ url_for('vie_scolaire.index') }}" class="btn btn-outline-secondary ms-2">Annuler</a>
 </form>
 {% elif classe %}
 <div class="alert alert-warning">Cette classe n'a aucun élève.</div>
