@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Élèves{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2 class="mb-0">Élèves</h2>
+</div>
+
+{% if not classes %}
+  <p class="text-muted">Aucune classe enregistrée.</p>
+{% endif %}
+
+{% for classe in classes %}
+<h5 class="mt-4 text-secondary">{{ classe }}</h5>
+<table class="table table-hover table-sm">
+  <thead class="table-light">
+    <tr>
+      <th>Nom</th>
+      <th>Prénom</th>
+      <th class="text-end">Points vie scolaire</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for eleve in classe.eleves | sort(attribute='nom') %}
+    <tr style="cursor:pointer" onclick="window.location='{{ url_for('eleves.fiche', eleve_id=eleve.id) }}'">
+      <td>{{ eleve.nom }}</td>
+      <td>{{ eleve.prenom }}</td>
+      <td class="text-end">
+        <span class="badge {% if eleve.points_vie_scolaire < 10 %}bg-danger{% elif eleve.points_vie_scolaire < 15 %}bg-warning text-dark{% else %}bg-success{% endif %}">
+          {{ eleve.points_vie_scolaire }}/20
+        </span>
+      </td>
+    </tr>
+    {% else %}
+    <tr><td colspan="3" class="text-muted fst-italic">Aucun élève dans cette classe.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endfor %}
+{% endblock %}
