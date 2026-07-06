@@ -48,3 +48,37 @@ def register_cli(app):
 
         msg = run_seed(app)
         click.echo(msg)
+
+    @app.cli.command("reset-db")
+    @click.option(
+        "--confirm",
+        is_flag=True,
+        help="Confirmer la suppression des données sans demander",
+    )
+    def reset_db(confirm):
+        """Réinitialise la base de données (supprime toutes les données)."""
+        if not confirm:
+            click.echo("⚠️  Cela va SUPPRIMER toutes les données de la base.")
+            if not click.confirm("Êtes-vous sûr ?"):
+                click.echo("Annulation.")
+                return
+
+        import os
+        from app.extensions import db
+
+        db_path = app.config["SQLALCHEMY_DATABASE_URI"].replace("sqlite:///", "")
+        if os.path.exists(db_path):
+            os.remove(db_path)
+            click.echo(f"✓ Base de données supprimée : {db_path}")
+        else:
+            click.echo("Base de données inexistante, création d'une nouvelle...")
+
+        with app.app_context():
+            from flask_migrate import upgrade
+
+            upgrade()
+            click.echo("✓ Migrations appliquées")
+            click.echo("")
+            click.echo("La base est vierge. Choisissez :")
+            click.echo("  flask seed-directeur <email> <motdepasse>")
+            click.echo("  flask seed-demo")
