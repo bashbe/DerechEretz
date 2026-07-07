@@ -8,7 +8,7 @@ from app.models import User
 # Sur Windows, la console utilise par défaut l'encodage cp1252 (PowerShell,
 # cmd.exe), qui ne sait pas encoder les symboles (✓, ⚠...) utilisés dans les
 # messages de ces commandes. On force stdout/stderr en UTF-8 pour que
-# `flask seed-demo` etc. ne plantent pas sur `click.echo` après avoir déjà
+# les commandes CLI ne plantent pas sur `click.echo` après avoir déjà
 # committé leurs données.
 for _stream in (sys.stdout, sys.stderr):
     try:
@@ -33,18 +33,35 @@ def register_cli(app):
         db.session.commit()
         click.echo(f"Compte directeur créé : {email}")
 
-    @app.cli.command("seed-demo")
-    def seed_demo():
-        """Charge 3 classes × 20 élèves avec un historique complet (notes, présences,
-        infractions, incidents, notices, contacts parents).
+    @app.cli.command("reset-db")
+    @click.option(
+        "--confirm",
+        is_flag=True,
+        help="Confirmer la suppression des données sans demander",
+    )
+    def reset_db(confirm):
+        """Réinitialise la base de données (supprime toutes les données)."""
+        if not confirm:
+            click.echo("⚠️  Cela va SUPPRIMER toutes les données de la base.")
+            if not click.confirm("Êtes-vous sûr ?"):
+                click.echo("Annulation.")
+                return
 
-        Comptes créés (mot de passe demo123) :
-          demo@ecole.fr         — directeur
-          prof.maths@demo.fr    — professeur (Mathématiques, Sciences, Sport)
-          prof.lettres@demo.fr  — professeur (Français, Histoire-Géo)
-          surveillant@demo.fr   — surveillant
-        """
-        from demo.seed import run_seed
+        import os
+        from app.extensions import db
 
-        msg = run_seed(app)
-        click.echo(msg)
+        db_path = app.config["SQLALCHEMY_DATABASE_URI"].replace("sqlite:///", "")
+        if os.path.exists(db_path):
+            os.remove(db_path)
+            click.echo(f"✓ Base de données supprimée : {db_path}")
+        else:
+            click.echo("Base de données inexistante, création d'une nouvelle...")
+
+        with app.app_context():
+            from flask_migrate import upgrade
+
+            upgrade()
+            click.echo("✓ Migrations appliquées")
+            click.echo("")
+            click.echo("La base est vierge. Créez un compte directeur :")
+            click.echo("  flask seed-directeur <email> <motdepasse>")

@@ -24,7 +24,6 @@ def create_app(config_class=Config):
     from app.vie_scolaire.routes import vie_scolaire_bp
     from app.rapports.routes import rapports_bp
     from app.admin.routes import admin_bp
-    from app.demo.routes import demo_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
@@ -32,7 +31,6 @@ def create_app(config_class=Config):
     app.register_blueprint(vie_scolaire_bp)
     app.register_blueprint(rapports_bp)
     app.register_blueprint(admin_bp)
-    app.register_blueprint(demo_bp)
 
     from app.cli import register_cli
 

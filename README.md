@@ -110,31 +110,6 @@ Puis ouvrir http://127.0.0.1:5000 et se connecter avec le compte créé.
 
 ---
 
-## Démonstration
-
-Un jeu de données fictif est inclus pour explorer toutes les fonctionnalités sans saisie manuelle.
-
-```bash
-flask db upgrade
-flask seed-demo
-python run.py
-```
-
-Puis visiter **http://127.0.0.1:5000/demo** pour accéder à la page d'accueil de la démo.
-
-Quatre profils sont disponibles (mot de passe `demo123`) :
-
-| Compte | Rôle |
-|---|---|
-| `demo@ecole.fr` | Directeur |
-| `prof.maths@demo.fr` | Professeur (Mathématiques, Sciences, Sport) |
-| `prof.lettres@demo.fr` | Professeure (Français, Histoire-Géo) |
-| `surveillant@demo.fr` | Surveillant |
-
-Le jeu de données comprend 3 classes, 60 élèves, ~2 000 notes sur 3 trimestres, ~325 présences, 50 infractions, 6 incidents majeurs, 8 notices et 2 cycles de discipline (un clôturé, un en cours).
-
----
-
 ## Tests
 
 ```bash
