@@ -1,184 +1,174 @@
 {% extends "base.html" %}
-{% from "_macros.html" import selecteur_periode, navigation_periode, ligne_evenement %}
+{% from "_macros.html" import selecteur_periode, navigation_periode, ligne_evenement, bouton, badge %}
 {% block title %}{{ eleve.nom_complet }}{% endblock %}
+{% block page_title %}{{ eleve.nom_complet }}{% endblock %}
 {% block content %}
 
-<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+<div class="flex justify-between items-start mb-6 flex-wrap gap-3">
   <div>
-    <nav aria-label="breadcrumb">
-      <ol class="breadcrumb mb-1">
-        <li class="breadcrumb-item"><a href="{{ url_for('eleves.liste') }}">Élèves</a></li>
-        <li class="breadcrumb-item active">{{ eleve.nom_complet }}</li>
-      </ol>
+    <nav class="text-body-md text-on-surface-variant mb-1">
+      <a href="{{ url_for('eleves.liste') }}" class="hover:text-primary">Élèves</a>
+      <span class="mx-1">/</span>
+      <span>{{ eleve.nom_complet }}</span>
     </nav>
-    <h2 class="mb-0">{{ eleve.nom_complet }}</h2>
-    <small class="text-muted">{{ eleve.classe }}</small>
+    <div class="text-on-surface-variant">{{ eleve.classe }}</div>
   </div>
-  <div class="d-flex gap-2 align-items-center flex-wrap">
+  <div class="flex gap-2 items-center flex-wrap">
     {% set url_fiche = url_for('eleves.fiche', eleve_id=eleve.id) %}
     {{ navigation_periode(preset, url_fiche, reference_precedent, reference_suivant) }}
     {{ selecteur_periode(preset, url_fiche) }}
     {% if types_creables %}
-    <a href="{{ url_for('vie_scolaire.index', eleve_id=eleve.id) }}" class="btn btn-sm btn-primary">
-      + Ajouter un événement
-    </a>
+    {{ bouton('Ajouter un événement', variant='primary', href=url_for('vie_scolaire.index', eleve_id=eleve.id), icone='add') }}
     {% endif %}
   </div>
 </div>
 
-<div class="row g-3 mb-4">
+<div class="grid grid-cols-1 md:grid-cols-12 gap-4 mb-6">
 
   {# --- Identité + contacts --- #}
-  <div class="col-md-4">
-    <div class="card h-100">
-      <div class="card-header fw-semibold">Identité</div>
-      <div class="card-body">
-        <dl class="row mb-0 small">
-          <dt class="col-5">Nom</dt><dd class="col-7">{{ eleve.nom }}</dd>
-          <dt class="col-5">Prénom</dt><dd class="col-7">{{ eleve.prenom }}</dd>
-          <dt class="col-5">Classe</dt><dd class="col-7">{{ eleve.classe.nom }}</dd>
-          {% if eleve.date_naissance %}
-          <dt class="col-5">Naissance</dt><dd class="col-7">{{ eleve.date_naissance.strftime('%d/%m/%Y') }}</dd>
-          {% endif %}
-          {% if eleve.adresse %}
-          <dt class="col-5">Adresse</dt><dd class="col-7">{{ eleve.adresse }}</dd>
-          {% endif %}
-        </dl>
-        {% if eleve.contacts_parents %}
-        <hr class="my-2">
-        <div class="fw-semibold small mb-1">Contacts parents</div>
-        <ul class="list-unstyled mb-0 small">
-          {% for c in eleve.contacts_parents %}
-          <li class="mb-1">
-            <span class="text-capitalize text-muted">{{ c.lien }}</span> — <strong>{{ c.nom }}</strong>
-            {% if c.telephone %}<br><span class="text-muted">📞 {{ c.telephone }}</span>{% endif %}
-            {% if c.email %}<br><span class="text-muted">✉️ {{ c.email }}</span>{% endif %}
-          </li>
-          {% endfor %}
-        </ul>
-        {% else %}
-        <hr class="my-2">
-        <small class="text-muted fst-italic">Aucun contact enregistré.</small>
+  <div class="md:col-span-4 bg-surface border border-border-subtle rounded-xl">
+    <div class="border-b border-border-subtle px-6 py-4 text-headline-md">Identité</div>
+    <div class="p-6">
+      <dl class="grid grid-cols-2 gap-y-2 text-body-md">
+        <dt class="text-on-surface-variant">Nom</dt><dd>{{ eleve.nom }}</dd>
+        <dt class="text-on-surface-variant">Prénom</dt><dd>{{ eleve.prenom }}</dd>
+        <dt class="text-on-surface-variant">Classe</dt><dd>{{ eleve.classe.nom }}</dd>
+        {% if eleve.date_naissance %}
+        <dt class="text-on-surface-variant">Naissance</dt><dd>{{ eleve.date_naissance.strftime('%d/%m/%Y') }}</dd>
         {% endif %}
-      </div>
+        {% if eleve.adresse %}
+        <dt class="text-on-surface-variant">Adresse</dt><dd>{{ eleve.adresse }}</dd>
+        {% endif %}
+      </dl>
+      {% if eleve.contacts_parents %}
+      <hr class="my-4 border-border-subtle">
+      <div class="font-semibold text-body-md mb-2">Contacts parents</div>
+      <ul class="space-y-2 text-body-md">
+        {% for c in eleve.contacts_parents %}
+        <li>
+          <span class="capitalize text-on-surface-variant">{{ c.lien }}</span> — <strong>{{ c.nom }}</strong>
+          {% if c.telephone %}<br><span class="text-on-surface-variant">📞 {{ c.telephone }}</span>{% endif %}
+          {% if c.email %}<br><span class="text-on-surface-variant">✉️ {{ c.email }}</span>{% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <hr class="my-4 border-border-subtle">
+      <span class="text-on-surface-variant italic">Aucun contact enregistré.</span>
+      {% endif %}
     </div>
   </div>
 
   {# --- Points de discipline : uniquement en vue « cycle » --- #}
   {% if preset == 'cycle' %}
-  <div class="col-md-2">
-    <div class="card h-100 text-center">
-      <div class="card-header fw-semibold">Points de discipline</div>
-      <div class="card-body d-flex flex-column align-items-center justify-content-center">
-        {% if cycle and cycle.est_cloture %}
-        {# Cycle clôturé : le compteur live a été remis à 20, ce solde est un
-           instantané figé — traité comme une note à part, pas la valeur courante. #}
-        <span class="badge bg-secondary mb-2">Bilan de cycle clôturé</span>
-        {% endif %}
-        <div class="display-4 fw-bold
-          {% if points_cycle is none %}text-muted
-          {% elif points_cycle < 10 %}text-danger
-          {% elif points_cycle < 15 %}text-warning
-          {% else %}text-success{% endif %}">
-          {{ points_cycle if points_cycle is not none else '—' }}
-        </div>
-        <div class="text-muted small">/20</div>
-        {% if cycle %}
-        <div class="text-muted small mt-1">
-          {{ cycle.date_debut.strftime('%d/%m') }} → {{ cycle.date_fin.strftime('%d/%m/%Y') }}
-          {% if cycle.est_cloture %}<br>clôturé le {{ cycle.date_cloture.strftime('%d/%m/%Y') }}{% endif %}
-        </div>
-        {% endif %}
+  <div class="md:col-span-3 bg-surface border border-border-subtle rounded-xl text-center">
+    <div class="border-b border-border-subtle px-6 py-4 text-headline-md">Points de discipline</div>
+    <div class="p-6 flex flex-col items-center justify-center">
+      {% if cycle and cycle.est_cloture %}
+      {# Cycle clôturé : le compteur live a été remis à 20, ce solde est un
+         instantané figé — traité comme une note à part, pas la valeur courante. #}
+      <div class="mb-2">{{ badge('Bilan de cycle clôturé', 'neutral') }}</div>
+      {% endif %}
+      <div class="text-headline-xl text-5xl
+        {% if points_cycle is none %}text-on-surface-variant
+        {% elif points_cycle < 10 %}text-error
+        {% elif points_cycle < 15 %}text-warning-amber
+        {% else %}text-success-green{% endif %}">
+        {{ points_cycle if points_cycle is not none else '—' }}
       </div>
+      <div class="text-on-surface-variant">/20</div>
+      {% if cycle %}
+      <div class="text-on-surface-variant text-body-md mt-2">
+        {{ cycle.date_debut.strftime('%d/%m') }} → {{ cycle.date_fin.strftime('%d/%m/%Y') }}
+        {% if cycle.est_cloture %}<br>clôturé le {{ cycle.date_cloture.strftime('%d/%m/%Y') }}{% endif %}
+      </div>
+      {% endif %}
     </div>
   </div>
   {% endif %}
 
   {# --- Moyennes --- #}
-  <div class="col-md-6">
-    <div class="card h-100">
-      <div class="card-header fw-semibold d-flex justify-content-between">
-        <span>Moyennes</span>
-        <small class="text-muted fw-normal">
-          {{ date_debut.strftime('%d/%m/%Y') }} → {{ date_fin.strftime('%d/%m/%Y') }}
-        </small>
-      </div>
-      <div class="card-body p-0">
-        {% if matieres %}
-        <table class="table table-sm mb-0">
-          <tbody>
-            {% for m in matieres %}
-            <tr>
-              <td>{{ m.nom }} <small class="text-muted">(coef. {{ m.coefficient }})</small></td>
-              <td class="text-end fw-bold">
-                {% set moy = moyennes[m] %}
-                {% if moy is not none %}
-                  <span class="{% if moy < 10 %}text-danger{% elif moy >= 14 %}text-success{% endif %}">
-                    {{ moy }}
-                  </span>
-                {% else %}
-                  <span class="text-muted">—</span>
-                {% endif %}
-              </td>
-            </tr>
-            {% endfor %}
-            {% if moyenne_generale is not none %}
-            <tr class="table-light">
-              <td class="fw-bold">Moyenne générale</td>
-              <td class="text-end fw-bold
-                {% if moyenne_generale < 10 %}text-danger
-                {% elif moyenne_generale >= 14 %}text-success{% endif %}">
-                {{ moyenne_generale }}
-              </td>
-            </tr>
-            {% endif %}
-          </tbody>
-        </table>
-        {% else %}
-        <p class="text-muted p-3 mb-0 fst-italic">Aucune matière affectée.</p>
-        {% endif %}
-      </div>
+  <div class="{{ 'md:col-span-5' if preset == 'cycle' else 'md:col-span-8' }} bg-surface border border-border-subtle rounded-xl">
+    <div class="border-b border-border-subtle px-6 py-4 flex justify-between items-center">
+      <span class="text-headline-md">Moyennes</span>
+      <span class="text-on-surface-variant text-body-md">
+        {{ date_debut.strftime('%d/%m/%Y') }} → {{ date_fin.strftime('%d/%m/%Y') }}
+      </span>
     </div>
+    {% if matieres %}
+    <table class="w-full zebra-stripe">
+      <tbody>
+        {% for m in matieres %}
+        <tr class="border-b border-border-subtle last:border-b-0">
+          <td class="px-6 py-2.5">{{ m.nom }} <span class="text-on-surface-variant text-body-md">(coef. {{ m.coefficient }})</span></td>
+          <td class="px-6 py-2.5 text-right font-bold">
+            {% set moy = moyennes[m] %}
+            {% if moy is not none %}
+              <span class="{% if moy < 10 %}text-error{% elif moy >= 14 %}text-success-green{% endif %}">
+                {{ moy }}
+              </span>
+            {% else %}
+              <span class="text-on-surface-variant">—</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+        {% if moyenne_generale is not none %}
+        <tr class="bg-surface-muted">
+          <td class="px-6 py-2.5 font-bold">Moyenne générale</td>
+          <td class="px-6 py-2.5 text-right font-bold
+            {% if moyenne_generale < 10 %}text-error
+            {% elif moyenne_generale >= 14 %}text-success-green{% endif %}">
+            {{ moyenne_generale }}
+          </td>
+        </tr>
+        {% endif %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="text-on-surface-variant p-6 italic">Aucune matière affectée.</p>
+    {% endif %}
   </div>
 </div>
 
 {# --- Rapport d'activités (feed unifié) --- #}
-<div class="card mb-3">
-  <div class="card-header fw-semibold d-flex justify-content-between align-items-center">
-    <span>
+<div class="bg-surface border border-border-subtle rounded-xl mb-3">
+  <div class="border-b border-border-subtle px-6 py-4 flex justify-between items-center">
+    <span class="text-headline-md">
       Rapport d'activités
-      <span class="badge bg-secondary ms-1">{{ activites|length }}</span>
+      <span class="inline-block rounded-full px-3 py-1 ml-1 text-label-sm normal-case tracking-normal font-semibold bg-secondary/10 text-secondary">{{ activites|length }}</span>
     </span>
-    <a class="small" href="{{ url_for('vie_scolaire.evenements_liste', eleve_id=eleve.id, periode=preset) }}">
+    <a class="text-body-md text-primary hover:underline" href="{{ url_for('vie_scolaire.evenements_liste', eleve_id=eleve.id, periode=preset) }}">
       Voir dans Vie scolaire
     </a>
   </div>
   {% if activites %}
-  <div class="card-body p-0">
-    <table class="table table-sm table-hover mb-0">
-      <thead class="table-light">
-        <tr><th>Date</th><th>Type</th><th>Détail</th><th>Matière</th></tr>
-      </thead>
-      <tbody>
-        {% for vue in activites %}
-          {{ ligne_evenement(vue, montrer_eleve=False) }}
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+  <table class="w-full zebra-stripe">
+    <thead>
+      <tr class="bg-surface-muted text-label-sm uppercase tracking-wider text-on-surface-variant">
+        <th class="px-4 py-3 text-left font-semibold">Date</th>
+        <th class="px-4 py-3 text-left font-semibold">Type</th>
+        <th class="px-4 py-3 text-left font-semibold">Détail</th>
+        <th class="px-4 py-3 text-left font-semibold">Matière</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for vue in activites %}
+        {{ ligne_evenement(vue, montrer_eleve=False) }}
+      {% endfor %}
+    </tbody>
+  </table>
   {% else %}
-  <div class="card-body text-center text-muted py-4">
+  <div class="text-center text-on-surface-variant py-10">
     Aucune activité sur cette période.
     {% if types_creables %}
-    <div class="mt-2">
-      <a href="{{ url_for('vie_scolaire.index', eleve_id=eleve.id) }}" class="btn btn-sm btn-outline-primary">
-        Ajouter un événement
-      </a>
+    <div class="mt-3">
+      {{ bouton('Ajouter un événement', variant='ghost', href=url_for('vie_scolaire.index', eleve_id=eleve.id)) }}
     </div>
     {% endif %}
   </div>
   {% endif %}
 </div>
-<p class="text-muted small">Cliquez sur une activité pour ouvrir sa fiche.</p>
+<p class="text-on-surface-variant text-body-md">Cliquez sur une activité pour ouvrir sa fiche.</p>
 
 {% endblock %}

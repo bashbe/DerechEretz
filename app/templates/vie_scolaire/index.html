@@ -1,73 +1,62 @@
 {% extends "base.html" %}
+{% from "_macros.html" import bouton, champ %}
 {% block title %}Vie scolaire{% endblock %}
+{% block page_title %}Vie scolaire{% endblock %}
 {% block content %}
 
-<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-  <h2 class="mb-0">Vie scolaire</h2>
-  <a href="{{ url_for('vie_scolaire.evenements_liste') }}" class="btn btn-outline-primary">
-    Voir tous les événements
-  </a>
+<div class="flex justify-between items-center mb-4 flex-wrap gap-3">
+  <div></div>
+  {{ bouton('Voir tous les événements', variant='ghost', href=url_for('vie_scolaire.evenements_liste')) }}
 </div>
 
 {# --- Raccourcis --- #}
-<div class="row g-3 mb-4">
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
   {% if peut_faire_appel %}
-  <div class="col-sm-6 col-lg-4">
-    <a href="{{ url_for('vie_scolaire.appel') }}" class="text-decoration-none">
-      <div class="card h-100 border-success">
-        <div class="card-body d-flex align-items-center gap-3">
-          <div class="fs-2">📋</div>
-          <div>
-            <div class="fw-semibold text-body">Carnet de présence du jour</div>
-            <small class="text-muted">Faire ou corriger l'appel d'une classe</small>
-          </div>
-        </div>
+  <a href="{{ url_for('vie_scolaire.appel') }}" class="block">
+    <div class="h-full bg-surface border border-border-subtle rounded-xl p-6 flex items-center gap-3 hover:border-primary transition-colors">
+      <div class="text-3xl">📋</div>
+      <div>
+        <div class="font-semibold text-body-lg">Carnet de présence du jour</div>
+        <div class="text-on-surface-variant text-body-md">Faire ou corriger l'appel d'une classe</div>
       </div>
-    </a>
-  </div>
+    </div>
+  </a>
   {% endif %}
   {% if "note" in types_creables %}
-  <div class="col-sm-6 col-lg-4">
-    <a href="{{ url_for('vie_scolaire.controles') }}" class="text-decoration-none">
-      <div class="card h-100 border-primary">
-        <div class="card-body d-flex align-items-center gap-3">
-          <div class="fs-2">📝</div>
-          <div>
-            <div class="fw-semibold text-body">Entrer des notes</div>
-            <small class="text-muted">Contrôles et grille de saisie par classe</small>
-          </div>
-        </div>
+  <a href="{{ url_for('vie_scolaire.controles') }}" class="block">
+    <div class="h-full bg-surface border border-border-subtle rounded-xl p-6 flex items-center gap-3 hover:border-primary transition-colors">
+      <div class="text-3xl">📝</div>
+      <div>
+        <div class="font-semibold text-body-lg">Entrer des notes</div>
+        <div class="text-on-surface-variant text-body-md">Contrôles et grille de saisie par classe</div>
       </div>
-    </a>
-  </div>
+    </div>
+  </a>
   {% endif %}
-  <div class="col-sm-6 col-lg-4">
-    <a href="{{ url_for('vie_scolaire.evenements_liste') }}" class="text-decoration-none">
-      <div class="card h-100 border-secondary">
-        <div class="card-body d-flex align-items-center gap-3">
-          <div class="fs-2">🗂️</div>
-          <div>
-            <div class="fw-semibold text-body">Événements enregistrés</div>
-            <small class="text-muted">Consulter, filtrer, modifier</small>
-          </div>
-        </div>
+  <a href="{{ url_for('vie_scolaire.evenements_liste') }}" class="block">
+    <div class="h-full bg-surface border border-border-subtle rounded-xl p-6 flex items-center gap-3 hover:border-primary transition-colors">
+      <div class="text-3xl">🗂️</div>
+      <div>
+        <div class="font-semibold text-body-lg">Événements enregistrés</div>
+        <div class="text-on-surface-variant text-body-md">Consulter, filtrer, modifier</div>
       </div>
-    </a>
-  </div>
+    </div>
+  </a>
 </div>
 
 {# --- Formulaire unifié de création --- #}
 {% if types_creables %}
-<div class="card">
-  <div class="card-header fw-semibold">Nouvel événement</div>
-  <div class="card-body">
+<div class="bg-surface border border-border-subtle rounded-xl">
+  <div class="border-b border-border-subtle px-6 py-4 text-headline-md">Nouvel événement</div>
+  <div class="p-6">
     <form method="post" action="{{ url_for('vie_scolaire.evenement_creer') }}" id="form-evenement">
 
-      <div class="row g-3">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         {# Type #}
-        <div class="col-md-4">
-          <label class="form-label fw-semibold">Type d'événement</label>
-          <select name="type" id="champ-type" class="form-select" required>
+        <div>
+          <label class="block text-label-sm normal-case tracking-normal font-semibold text-on-surface-variant mb-1.5">Type d'événement</label>
+          <select name="type" id="champ-type" required
+                  class="w-full border border-border-subtle rounded-lg px-3 py-2 text-body-md focus:ring-2 focus:ring-primary/20 focus:border-primary">
             <option value="">Choisir…</option>
             {% for code in ["infraction_mineure", "infraction_majeure", "note", "observation", "presence"] %}
               {% if code in types_creables %}
@@ -80,40 +69,46 @@
         </div>
 
         {# Date / éditeur #}
-        <div class="col-md-4">
-          <label class="form-label fw-semibold">Jour</label>
-          <input type="date" name="date" class="form-control" value="{{ today }}" required>
+        <div>
+          <label class="block text-label-sm normal-case tracking-normal font-semibold text-on-surface-variant mb-1.5">Jour</label>
+          <input type="date" name="date" value="{{ today }}" required
+                 class="w-full border border-border-subtle rounded-lg px-3 py-2 text-body-md focus:ring-2 focus:ring-primary/20 focus:border-primary">
         </div>
-        <div class="col-md-4">
-          <label class="form-label fw-semibold">Éditeur</label>
-          <input type="text" class="form-control" value="{{ current_user.nom }} ({{ current_user.role }})" disabled>
+        <div>
+          <label class="block text-label-sm normal-case tracking-normal font-semibold text-on-surface-variant mb-1.5">Éditeur</label>
+          <input type="text" value="{{ current_user.nom }} ({{ current_user.role }})" disabled
+                 class="w-full border border-border-subtle rounded-lg px-3 py-2 text-body-md bg-surface-muted text-on-surface-variant">
         </div>
       </div>
 
       {# Cible #}
-      <fieldset class="mt-3">
-        <legend class="form-label fw-semibold fs-6">Élèves concernés</legend>
-        <div class="d-flex gap-3 flex-wrap mb-2">
-          <div class="form-check">
-            <input class="form-check-input" type="radio" name="cible" value="selection" id="cible-selection"
+      <fieldset class="mt-4">
+        <legend class="block text-label-sm normal-case tracking-normal font-semibold text-on-surface-variant mb-1.5">Élèves concernés</legend>
+        <div class="flex gap-4 flex-wrap mb-2">
+          <label class="inline-flex items-center gap-2 text-body-md">
+            <input type="radio" name="cible" value="selection" id="cible-selection"
+                   class="rounded border-border-subtle text-primary focus:ring-primary/20"
                    {% if eleve_prefill or not current_user.is_surveillant() %}checked{% endif %}>
-            <label class="form-check-label" for="cible-selection">Sélectionner des élèves</label>
-          </div>
-          <div class="form-check">
-            <input class="form-check-input" type="radio" name="cible" value="classe" id="cible-classe"
+            Sélectionner des élèves
+          </label>
+          <label class="inline-flex items-center gap-2 text-body-md">
+            <input type="radio" name="cible" value="classe" id="cible-classe"
+                   class="rounded border-border-subtle text-primary focus:ring-primary/20"
                    {% if not eleve_prefill and current_user.is_surveillant() %}checked{% endif %}>
-            <label class="form-check-label" for="cible-classe">Toute une classe</label>
-          </div>
+            Toute une classe
+          </label>
           {% if not current_user.is_professeur() %}
-          <div class="form-check">
-            <input class="form-check-input" type="radio" name="cible" value="global" id="cible-global">
-            <label class="form-check-label" for="cible-global">Toute l'école</label>
-          </div>
+          <label class="inline-flex items-center gap-2 text-body-md">
+            <input type="radio" name="cible" value="global" id="cible-global"
+                   class="rounded border-border-subtle text-primary focus:ring-primary/20">
+            Toute l'école
+          </label>
           {% endif %}
         </div>
 
         <div id="bloc-selection">
-          <select name="eleves_ids" class="form-select" multiple size="8">
+          <select name="eleves_ids" multiple size="8"
+                  class="w-full border border-border-subtle rounded-lg px-3 py-2 text-body-md focus:ring-2 focus:ring-primary/20 focus:border-primary">
             {% for c in classes %}
               <optgroup label="{{ c.nom }}">
                 {% for e in c.eleves|sort(attribute='nom') %}
@@ -125,11 +120,12 @@
               </optgroup>
             {% endfor %}
           </select>
-          <small class="text-muted">Maintenez Ctrl (ou Cmd) pour sélectionner plusieurs élèves.</small>
+          <div class="text-on-surface-variant text-label-sm normal-case tracking-normal mt-1">Maintenez Ctrl (ou Cmd) pour sélectionner plusieurs élèves.</div>
         </div>
 
-        <div id="bloc-classe" class="d-none" style="max-width: 20rem">
-          <select name="classe_id" class="form-select">
+        <div id="bloc-classe" class="hidden max-w-xs">
+          <select name="classe_id"
+                  class="w-full border border-border-subtle rounded-lg px-3 py-2 text-body-md focus:ring-2 focus:ring-primary/20 focus:border-primary">
             <option value="">Choisir une classe…</option>
             {% for c in classes %}
               <option value="{{ c.id }}">{{ c.nom }}</option>
@@ -140,9 +136,9 @@
 
       {# --- Champs selon le type --- #}
 
-      <div class="mt-3 groupe-type d-none" data-type="infraction_mineure">
-        <label class="form-label fw-semibold">Infraction (barème)</label>
-        <select name="type_infraction_id" class="form-select" style="max-width: 28rem">
+      <div class="mt-4 groupe-type hidden" data-type="infraction_mineure">
+        <label class="block text-label-sm normal-case tracking-normal font-semibold text-on-surface-variant mb-1.5">Infraction (barème)</label>
+        <select name="type_infraction_id" class="max-w-md border border-border-subtle rounded-lg px-3 py-2 text-body-md focus:ring-2 focus:ring-primary/20 focus:border-primary">
           <option value="">Choisir…</option>
           {% for t in types_infractions %}
             <option value="{{ t.id }}">{{ t.libelle }} (−{{ t.points_deduits }} pt{{ 's' if t.points_deduits > 1 }})</option>
@@ -150,84 +146,88 @@
         </select>
       </div>
 
-      <div class="mt-3 groupe-type d-none" data-type="infraction_majeure">
-        <div class="row g-3">
-          <div class="col-md-4">
-            <label class="form-label fw-semibold">Gravité</label>
-            <select name="gravite" class="form-select">
+      <div class="mt-4 groupe-type hidden" data-type="infraction_majeure">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-label-sm normal-case tracking-normal font-semibold text-on-surface-variant mb-1.5">Gravité</label>
+            <select name="gravite" class="w-full border border-border-subtle rounded-lg px-3 py-2 text-body-md focus:ring-2 focus:ring-primary/20 focus:border-primary">
               <option value="mineure_grave">Mineure grave</option>
               <option value="moyenne" selected>Moyenne</option>
               <option value="majeure">Majeure</option>
             </select>
           </div>
-          <div class="col-md-8">
-            <label class="form-label fw-semibold">Sanction (optionnel)</label>
-            <input type="text" name="sanction" class="form-control" placeholder="ex : retenue, convocation…">
+          <div class="md:col-span-2">
+            <label class="block text-label-sm normal-case tracking-normal font-semibold text-on-surface-variant mb-1.5">Sanction (optionnel)</label>
+            <input type="text" name="sanction" placeholder="ex : retenue, convocation…"
+                   class="w-full border border-border-subtle rounded-lg px-3 py-2 text-body-md focus:ring-2 focus:ring-primary/20 focus:border-primary">
           </div>
-          <div class="col-12">
-            <label class="form-label fw-semibold">Description</label>
-            <textarea name="description" class="form-control" rows="3"
-                      placeholder="Décrire les faits…"></textarea>
+          <div class="md:col-span-3">
+            <label class="block text-label-sm normal-case tracking-normal font-semibold text-on-surface-variant mb-1.5">Description</label>
+            <textarea name="description" rows="3" placeholder="Décrire les faits…"
+                      class="w-full border border-border-subtle rounded-lg px-3 py-2 text-body-md focus:ring-2 focus:ring-primary/20 focus:border-primary"></textarea>
           </div>
         </div>
       </div>
 
-      <div class="mt-3 groupe-type d-none" data-type="note">
-        <label class="form-label fw-semibold">Note /20</label>
-        <input type="number" name="valeur" class="form-control" min="0" max="20" step="0.5"
-               style="max-width: 10rem" placeholder="ex : 14,5">
-        <small class="text-muted d-block mt-1">
+      <div class="mt-4 groupe-type hidden" data-type="note">
+        <label class="block text-label-sm normal-case tracking-normal font-semibold text-on-surface-variant mb-1.5">Note /20</label>
+        <input type="number" name="valeur" min="0" max="20" step="0.5" placeholder="ex : 14,5"
+               class="max-w-[10rem] border border-border-subtle rounded-lg px-3 py-2 text-body-md focus:ring-2 focus:ring-primary/20 focus:border-primary">
+        <div class="text-on-surface-variant text-label-sm normal-case tracking-normal mt-1">
           Pour noter une classe entière sur un contrôle (avec coefficient), utilisez plutôt
-          <a href="{{ url_for('vie_scolaire.controles') }}">la grille de saisie par contrôle</a>.
-        </small>
-      </div>
-
-      <div class="mt-3 groupe-type d-none" data-type="observation">
-        <div class="mb-2">
-          <label class="form-label fw-semibold">Titre</label>
-          <input type="text" name="titre" class="form-control" style="max-width: 28rem"
-                 placeholder="ex : Félicitations, oubli de matériel…">
+          <a href="{{ url_for('vie_scolaire.controles') }}" class="text-primary hover:underline">la grille de saisie par contrôle</a>.
         </div>
-        <label class="form-label fw-semibold">Contenu</label>
-        <textarea name="contenu" class="form-control" rows="3"></textarea>
       </div>
 
-      <div class="mt-3 groupe-type d-none" data-type="presence">
-        <div class="row g-3">
-          <div class="col-md-3">
-            <label class="form-label fw-semibold">Statut</label>
-            <select name="statut" class="form-select">
+      <div class="mt-4 groupe-type hidden" data-type="observation">
+        <div class="mb-3">
+          <label class="block text-label-sm normal-case tracking-normal font-semibold text-on-surface-variant mb-1.5">Titre</label>
+          <input type="text" name="titre" placeholder="ex : Félicitations, oubli de matériel…"
+                 class="max-w-md w-full border border-border-subtle rounded-lg px-3 py-2 text-body-md focus:ring-2 focus:ring-primary/20 focus:border-primary">
+        </div>
+        <label class="block text-label-sm normal-case tracking-normal font-semibold text-on-surface-variant mb-1.5">Contenu</label>
+        <textarea name="contenu" rows="3"
+                  class="w-full border border-border-subtle rounded-lg px-3 py-2 text-body-md focus:ring-2 focus:ring-primary/20 focus:border-primary"></textarea>
+      </div>
+
+      <div class="mt-4 groupe-type hidden" data-type="presence">
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+          <div class="md:col-span-3">
+            <label class="block text-label-sm normal-case tracking-normal font-semibold text-on-surface-variant mb-1.5">Statut</label>
+            <select name="statut" class="w-full border border-border-subtle rounded-lg px-3 py-2 text-body-md focus:ring-2 focus:ring-primary/20 focus:border-primary">
               <option value="absent">Absent</option>
               <option value="retard">Retard</option>
             </select>
           </div>
-          <div class="col-md-3">
-            <label class="form-label fw-semibold">Heure d'arrivée</label>
-            <input type="time" name="heure" class="form-control">
+          <div class="md:col-span-3">
+            <label class="block text-label-sm normal-case tracking-normal font-semibold text-on-surface-variant mb-1.5">Heure d'arrivée</label>
+            <input type="time" name="heure" class="w-full border border-border-subtle rounded-lg px-3 py-2 text-body-md focus:ring-2 focus:ring-primary/20 focus:border-primary">
           </div>
-          <div class="col-md-2 d-flex align-items-end">
-            <div class="form-check mb-2">
-              <input type="checkbox" name="justifie" value="1" class="form-check-input" id="champ-justifie">
-              <label class="form-check-label" for="champ-justifie">Justifié</label>
-            </div>
+          <div class="md:col-span-2 flex items-end pb-2">
+            <label class="inline-flex items-center gap-2 text-body-md">
+              <input type="checkbox" name="justifie" value="1" id="champ-justifie"
+                     class="rounded border-border-subtle text-primary focus:ring-primary/20">
+              Justifié
+            </label>
           </div>
-          <div class="col-md-4">
-            <label class="form-label fw-semibold">Motif (optionnel)</label>
-            <input type="text" name="motif" class="form-control">
+          <div class="md:col-span-4">
+            <label class="block text-label-sm normal-case tracking-normal font-semibold text-on-surface-variant mb-1.5">Motif (optionnel)</label>
+            <input type="text" name="motif" class="w-full border border-border-subtle rounded-lg px-3 py-2 text-body-md focus:ring-2 focus:ring-primary/20 focus:border-primary">
           </div>
         </div>
-        <small class="text-muted d-block mt-1">
+        <div class="text-on-surface-variant text-label-sm normal-case tracking-normal mt-1">
           Pour l'appel complet d'une classe, utilisez plutôt
-          <a href="{{ url_for('vie_scolaire.appel') }}">le carnet de présence du jour</a>.
-        </small>
+          <a href="{{ url_for('vie_scolaire.appel') }}" class="text-primary hover:underline">le carnet de présence du jour</a>.
+        </div>
       </div>
 
       {# Matière (tous types sauf présence) #}
-      <div class="mt-3 d-none" id="bloc-matiere" style="max-width: 20rem">
-        <label class="form-label fw-semibold">
-          Matière {% if not current_user.is_professeur() %}<span class="fw-normal text-muted">(optionnel)</span>{% endif %}
+      <div class="mt-4 hidden max-w-xs" id="bloc-matiere">
+        <label class="block text-label-sm normal-case tracking-normal font-semibold text-on-surface-variant mb-1.5">
+          Matière {% if not current_user.is_professeur() %}<span class="font-normal text-on-surface-variant">(optionnel)</span>{% endif %}
         </label>
-        <select name="matiere_id" class="form-select" {% if current_user.is_professeur() %}required{% endif %}>
+        <select name="matiere_id" {% if current_user.is_professeur() %}required{% endif %}
+                class="w-full border border-border-subtle rounded-lg px-3 py-2 text-body-md focus:ring-2 focus:ring-primary/20 focus:border-primary">
           <option value="">—</option>
           {% for m in matieres %}
             <option value="{{ m.id }}">{{ m.nom }}</option>
@@ -235,8 +235,8 @@
         </select>
       </div>
 
-      <div class="mt-4">
-        <button type="submit" class="btn btn-primary">Enregistrer l'événement</button>
+      <div class="mt-6">
+        {{ bouton("Enregistrer l'événement", variant='primary', type='submit') }}
       </div>
     </form>
   </div>
@@ -252,14 +252,14 @@
 
     function majType() {
       const type = champType.value;
-      groupes.forEach(g => g.classList.toggle("d-none", g.dataset.type !== type));
-      blocMatiere.classList.toggle("d-none", !type || type === "presence");
+      groupes.forEach(g => g.classList.toggle("hidden", g.dataset.type !== type));
+      blocMatiere.classList.toggle("hidden", !type || type === "presence");
     }
 
     function majCible() {
       const cible = document.querySelector("input[name='cible']:checked").value;
-      blocSelection.classList.toggle("d-none", cible !== "selection");
-      blocClasse.classList.toggle("d-none", cible !== "classe");
+      blocSelection.classList.toggle("hidden", cible !== "selection");
+      blocClasse.classList.toggle("hidden", cible !== "classe");
     }
 
     champType.addEventListener("change", majType);
@@ -270,9 +270,9 @@
 </script>
 
 {% else %}
-<div class="alert alert-light border">
+<div class="bg-surface border border-border-subtle rounded-xl px-6 py-4 text-on-surface-variant">
   Votre rôle ne permet pas de créer d'événement.
-  <a href="{{ url_for('vie_scolaire.evenements_liste') }}">Consulter les événements</a>.
+  <a href="{{ url_for('vie_scolaire.evenements_liste') }}" class="text-primary hover:underline">Consulter les événements</a>.
 </div>
 {% endif %}
 

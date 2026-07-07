@@ -1,89 +1,90 @@
 {% extends "base.html" %}
-{% from "_macros.html" import selecteur_periode, navigation_periode, ligne_evenement %}
+{% from "_macros.html" import selecteur_periode, navigation_periode, ligne_evenement, bouton %}
 {% block title %}Événements{% endblock %}
+{% block page_title %}Événements{% endblock %}
 {% block content %}
 
-<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+<div class="flex justify-between items-start mb-4 flex-wrap gap-3">
   <div>
-    <nav aria-label="breadcrumb">
-      <ol class="breadcrumb mb-1">
-        <li class="breadcrumb-item"><a href="{{ url_for('vie_scolaire.index') }}">Vie scolaire</a></li>
-        <li class="breadcrumb-item active">Événements</li>
-      </ol>
+    <nav class="text-body-md text-on-surface-variant mb-1">
+      <a href="{{ url_for('vie_scolaire.index') }}" class="hover:text-primary">Vie scolaire</a>
+      <span class="mx-1">/</span>
+      <span>Événements</span>
     </nav>
-    <h2 class="mb-0">Événements</h2>
-    <small class="text-muted">{{ date_debut.strftime('%d/%m/%Y') }} → {{ date_fin.strftime('%d/%m/%Y') }}</small>
+    <div class="text-on-surface-variant">{{ date_debut.strftime('%d/%m/%Y') }} → {{ date_fin.strftime('%d/%m/%Y') }}</div>
   </div>
-  <div class="d-flex gap-2 align-items-center flex-wrap">
+  <div class="flex gap-2 items-center flex-wrap">
     {% set url_liste = url_for('vie_scolaire.evenements_liste', type=type_filtre or '', classe_id=classe_id or '', eleve_id=eleve_id or '') %}
     {{ navigation_periode(preset, url_liste, reference_precedent, reference_suivant) }}
     {{ selecteur_periode(preset, url_liste) }}
-    <a href="{{ url_for('vie_scolaire.index') }}" class="btn btn-sm btn-primary">+ Nouvel événement</a>
+    {{ bouton('Nouvel événement', variant='primary', href=url_for('vie_scolaire.index'), icone='add') }}
   </div>
 </div>
 
 {# Sous-filtre type : boutons avec compteur #}
-<div class="d-flex gap-2 mb-3 flex-wrap">
+<div class="flex gap-2 mb-4 flex-wrap">
   <a href="{{ url_for('vie_scolaire.evenements_liste', periode=preset, classe_id=classe_id or '', eleve_id=eleve_id or '') }}"
-     class="btn btn-sm {{ 'btn-dark' if not type_filtre else 'btn-outline-dark' }}">
-    Tous <span class="badge bg-light text-dark ms-1">{{ vues|length if not type_filtre else '' }}</span>
+     class="px-3 py-1.5 rounded-lg text-body-md font-semibold
+            {{ 'bg-on-surface text-white' if not type_filtre else 'border border-border-subtle text-on-surface-variant hover:bg-black/5' }}">
+    Tous <span class="ml-1 opacity-70">{{ vues|length if not type_filtre else '' }}</span>
   </a>
   {% for code, libelle in libelles_types.items() %}
     <a href="{{ url_for('vie_scolaire.evenements_liste', periode=preset, type=code, classe_id=classe_id or '', eleve_id=eleve_id or '') }}"
-       class="btn btn-sm {{ 'btn-dark' if type_filtre == code else 'btn-outline-secondary' }}">
-      {{ libelle }}{% if compte_par_type.get(code) %} <span class="badge bg-light text-dark ms-1">{{ compte_par_type[code] }}</span>{% endif %}
+       class="px-3 py-1.5 rounded-lg text-body-md font-semibold
+              {{ 'bg-on-surface text-white' if type_filtre == code else 'border border-border-subtle text-on-surface-variant hover:bg-black/5' }}">
+      {{ libelle }}{% if compte_par_type.get(code) %} <span class="ml-1 opacity-70">{{ compte_par_type[code] }}</span>{% endif %}
     </a>
   {% endfor %}
 </div>
 
 {# Filtres classe / élève #}
-<form class="row g-2 mb-3 align-items-end" method="get">
+<form class="flex gap-2 mb-4 items-end flex-wrap" method="get">
   <input type="hidden" name="periode" value="{{ preset }}">
   {% if type_filtre %}<input type="hidden" name="type" value="{{ type_filtre }}">{% endif %}
-  <div class="col-auto">
-    <select name="classe_id" class="form-select form-select-sm" onchange="this.form.submit()">
-      <option value="">Toutes les classes</option>
-      {% for c in classes %}
-        <option value="{{ c.id }}" {% if classe_id == c.id %}selected{% endif %}>{{ c.nom }}</option>
-      {% endfor %}
-    </select>
-  </div>
-  <div class="col-auto">
-    <select name="eleve_id" class="form-select form-select-sm" onchange="this.form.submit()">
-      <option value="">Tous les élèves</option>
-      {% for e in eleves %}
-        <option value="{{ e.id }}" {% if eleve_id == e.id %}selected{% endif %}>
-          {{ e.nom_complet }} ({{ e.classe.nom }})
-        </option>
-      {% endfor %}
-    </select>
-  </div>
+  <select name="classe_id" onchange="this.form.submit()"
+          class="border border-border-subtle rounded-lg px-3 py-2 text-body-md focus:ring-2 focus:ring-primary/20 focus:border-primary">
+    <option value="">Toutes les classes</option>
+    {% for c in classes %}
+      <option value="{{ c.id }}" {% if classe_id == c.id %}selected{% endif %}>{{ c.nom }}</option>
+    {% endfor %}
+  </select>
+  <select name="eleve_id" onchange="this.form.submit()"
+          class="border border-border-subtle rounded-lg px-3 py-2 text-body-md focus:ring-2 focus:ring-primary/20 focus:border-primary">
+    <option value="">Tous les élèves</option>
+    {% for e in eleves %}
+      <option value="{{ e.id }}" {% if eleve_id == e.id %}selected{% endif %}>
+        {{ e.nom_complet }} ({{ e.classe.nom }})
+      </option>
+    {% endfor %}
+  </select>
 </form>
 
 {% if vues %}
-<div class="card">
-  <div class="card-body p-0">
-    <table class="table table-sm table-hover mb-0">
-      <thead class="table-light">
-        <tr><th>Date</th><th>Élève</th><th>Type</th><th>Détail</th><th>Matière</th></tr>
-      </thead>
-      <tbody>
-        {% for vue in vues %}
-          {{ ligne_evenement(vue) }}
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+<div class="bg-surface border border-border-subtle rounded-xl overflow-hidden">
+  <table class="w-full zebra-stripe">
+    <thead>
+      <tr class="bg-surface-muted text-label-sm uppercase tracking-wider text-on-surface-variant">
+        <th class="px-4 py-3 text-left font-semibold">Date</th>
+        <th class="px-4 py-3 text-left font-semibold">Élève</th>
+        <th class="px-4 py-3 text-left font-semibold">Type</th>
+        <th class="px-4 py-3 text-left font-semibold">Détail</th>
+        <th class="px-4 py-3 text-left font-semibold">Matière</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for vue in vues %}
+        {{ ligne_evenement(vue) }}
+      {% endfor %}
+    </tbody>
+  </table>
 </div>
-<p class="text-muted small mt-2">Cliquez sur une ligne pour ouvrir la fiche de l'événement.</p>
+<p class="text-on-surface-variant text-body-md mt-2">Cliquez sur une ligne pour ouvrir la fiche de l'événement.</p>
 {% else %}
-<div class="card">
-  <div class="card-body text-center text-muted py-5">
-    <div class="fs-1 mb-2">🗂️</div>
-    Aucun événement sur cette période{% if type_filtre %} pour ce type{% endif %}.
-    <div class="mt-2">
-      <a href="{{ url_for('vie_scolaire.index') }}" class="btn btn-sm btn-outline-primary">Créer un événement</a>
-    </div>
+<div class="bg-surface border border-border-subtle rounded-xl text-center text-on-surface-variant py-16">
+  <div class="text-5xl mb-3">🗂️</div>
+  Aucun événement sur cette période{% if type_filtre %} pour ce type{% endif %}.
+  <div class="mt-3">
+    {{ bouton('Créer un événement', variant='ghost', href=url_for('vie_scolaire.index')) }}
   </div>
 </div>
 {% endif %}

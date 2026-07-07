@@ -1,36 +1,51 @@
 {% extends "base.html" %}
-{% from "_macros.html" import bouton_supprimer %}
+{% from "_macros.html" import bouton, bouton_supprimer %}
 {% block title %}Élèves{% endblock %}
+{% block page_title %}Élèves{% endblock %}
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <h1 class="h3">Élèves</h1>
-  <a href="{{ url_for('admin.eleve_nouveau') }}" class="btn btn-primary">+ Nouvel élève</a>
+
+<div class="flex justify-between items-center mb-4 flex-wrap gap-3">
+  <h1 class="text-headline-lg">Élèves</h1>
+  {{ bouton('Nouvel élève', variant='primary', href=url_for('admin.eleve_nouveau'), icone='add') }}
 </div>
-<form method="get" class="mb-3 col-md-3">
-  <select name="classe_id" class="form-select" onchange="this.form.submit()">
+
+<form method="get" class="mb-4 max-w-xs">
+  <select name="classe_id" onchange="this.form.submit()"
+          class="w-full border border-border-subtle rounded-lg px-3 py-2 text-body-md focus:ring-2 focus:ring-primary/20 focus:border-primary">
     <option value="">Toutes les classes</option>
     {% for classe in classes %}
       <option value="{{ classe.id }}" {% if classe.id == classe_id %}selected{% endif %}>{{ classe.nom }}</option>
     {% endfor %}
   </select>
 </form>
-<table class="table table-striped">
-  <thead><tr><th>Nom</th><th>Prénom</th><th>Classe</th><th>Points vie scolaire</th><th></th></tr></thead>
-  <tbody>
-  {% for eleve in eleves %}
-    <tr>
-      <td>{{ eleve.nom }}</td>
-      <td>{{ eleve.prenom }}</td>
-      <td>{{ eleve.classe.nom }}</td>
-      <td>{{ eleve.points_vie_scolaire }}/20</td>
-      <td class="text-end">
-        <a href="{{ url_for('admin.eleve_modifier', eleve_id=eleve.id) }}" class="btn btn-sm btn-outline-secondary">Modifier</a>
-        {{ bouton_supprimer(url_for('admin.eleve_supprimer', eleve_id=eleve.id)) }}
-      </td>
-    </tr>
-  {% else %}
-    <tr><td colspan="5" class="text-muted">Aucun élève.</td></tr>
-  {% endfor %}
-  </tbody>
-</table>
+
+<div class="bg-surface border border-border-subtle rounded-xl overflow-hidden">
+  <table class="w-full zebra-stripe">
+    <thead>
+      <tr class="bg-surface-muted text-label-sm uppercase tracking-wider text-on-surface-variant">
+        <th class="px-4 py-3 text-left font-semibold">Nom</th>
+        <th class="px-4 py-3 text-left font-semibold">Prénom</th>
+        <th class="px-4 py-3 text-left font-semibold">Classe</th>
+        <th class="px-4 py-3 text-left font-semibold">Points vie scolaire</th>
+        <th class="px-4 py-3 text-right font-semibold"></th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for eleve in eleves %}
+      <tr>
+        <td class="px-4 py-3">{{ eleve.nom }}</td>
+        <td class="px-4 py-3">{{ eleve.prenom }}</td>
+        <td class="px-4 py-3">{{ eleve.classe.nom }}</td>
+        <td class="px-4 py-3">{{ eleve.points_vie_scolaire }}/20</td>
+        <td class="px-4 py-3 text-right whitespace-nowrap">
+          {{ bouton('Modifier', variant='ghost', href=url_for('admin.eleve_modifier', eleve_id=eleve.id)) }}
+          {{ bouton_supprimer(url_for('admin.eleve_supprimer', eleve_id=eleve.id)) }}
+        </td>
+      </tr>
+    {% else %}
+      <tr><td colspan="5" class="px-4 py-6 text-center text-on-surface-variant italic">Aucun élève.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
 {% endblock %}

@@ -1,96 +1,89 @@
 {% extends "base.html" %}
+{% from "_macros.html" import bouton, badge, bouton_supprimer %}
 {% block title %}Notes{% endblock %}
+{% block page_title %}Notes — Contrôles{% endblock %}
 {% block content %}
 
-<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+<div class="flex justify-between items-center mb-4 flex-wrap gap-3">
   <div>
-    <nav aria-label="breadcrumb">
-      <ol class="breadcrumb mb-1">
-        <li class="breadcrumb-item"><a href="{{ url_for('vie_scolaire.index') }}">Vie scolaire</a></li>
-        <li class="breadcrumb-item active">Notes — Contrôles</li>
-      </ol>
+    <nav class="text-body-md text-on-surface-variant mb-1">
+      <a href="{{ url_for('vie_scolaire.index') }}" class="hover:text-primary">Vie scolaire</a>
+      <span class="mx-1">/</span>
+      <span>Notes — Contrôles</span>
     </nav>
-    <h2 class="mb-0">Notes — Contrôles</h2>
   </div>
-  <a href="{{ url_for('vie_scolaire.controle_nouveau') }}" class="btn btn-sm btn-primary">
-    + Nouveau contrôle
-  </a>
+  {{ bouton('Nouveau contrôle', variant='primary', href=url_for('vie_scolaire.controle_nouveau'), icone='add') }}
 </div>
 
 {# Filtres #}
-<form class="row g-2 mb-4 align-items-end" method="get">
-  <div class="col-auto">
-    <select name="classe_id" class="form-select form-select-sm" onchange="this.form.submit()">
-      <option value="">Toutes les classes</option>
-      {% for c in classes %}
-        <option value="{{ c.id }}" {% if classe_id == c.id %}selected{% endif %}>{{ c.nom }}</option>
-      {% endfor %}
-    </select>
-  </div>
-  <div class="col-auto">
-    <select name="matiere_id" class="form-select form-select-sm" onchange="this.form.submit()">
-      <option value="">Toutes les matières</option>
-      {% for m in matieres %}
-        <option value="{{ m.id }}" {% if matiere_id == m.id %}selected{% endif %}>{{ m.nom }}</option>
-      {% endfor %}
-    </select>
-  </div>
-  <div class="col-auto">
-    <select name="trimestre_id" class="form-select form-select-sm" onchange="this.form.submit()">
-      <option value="">Tous les trimestres</option>
-      {% for t in trimestres %}
-        <option value="{{ t.id }}" {% if trimestre_id == t.id %}selected{% endif %}>{{ t.code }}</option>
-      {% endfor %}
-    </select>
-  </div>
+<form class="flex gap-2 mb-4 items-end flex-wrap" method="get">
+  <select name="classe_id" onchange="this.form.submit()"
+          class="border border-border-subtle rounded-lg px-3 py-2 text-body-md focus:ring-2 focus:ring-primary/20 focus:border-primary">
+    <option value="">Toutes les classes</option>
+    {% for c in classes %}
+      <option value="{{ c.id }}" {% if classe_id == c.id %}selected{% endif %}>{{ c.nom }}</option>
+    {% endfor %}
+  </select>
+  <select name="matiere_id" onchange="this.form.submit()"
+          class="border border-border-subtle rounded-lg px-3 py-2 text-body-md focus:ring-2 focus:ring-primary/20 focus:border-primary">
+    <option value="">Toutes les matières</option>
+    {% for m in matieres %}
+      <option value="{{ m.id }}" {% if matiere_id == m.id %}selected{% endif %}>{{ m.nom }}</option>
+    {% endfor %}
+  </select>
+  <select name="trimestre_id" onchange="this.form.submit()"
+          class="border border-border-subtle rounded-lg px-3 py-2 text-body-md focus:ring-2 focus:ring-primary/20 focus:border-primary">
+    <option value="">Tous les trimestres</option>
+    {% for t in trimestres %}
+      <option value="{{ t.id }}" {% if trimestre_id == t.id %}selected{% endif %}>{{ t.code }}</option>
+    {% endfor %}
+  </select>
 </form>
 
 {% if controles %}
-<div class="card">
-  <div class="card-body p-0">
-    <table class="table table-sm mb-0">
-      <thead class="table-light">
-        <tr>
-          <th>Date</th>
-          <th>Intitulé</th>
-          <th>Classe</th>
-          <th>Matière</th>
-          <th>Trimestre</th>
-          <th class="text-end">Coef.</th>
-          <th class="text-end">Notes</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for c in controles %}
-        <tr>
-          <td>{{ c.date.strftime('%d/%m/%Y') }}</td>
-          <td>
-            <a href="{{ url_for('vie_scolaire.controle_saisie', controle_id=c.id) }}">{{ c.intitule }}</a>
-          </td>
-          <td><small class="text-muted">{{ c.classe.nom }}</small></td>
-          <td><small class="text-muted">{{ c.matiere.nom }}</small></td>
-          <td><small class="text-muted">{{ c.trimestre.code if c.trimestre else '—' }}</small></td>
-          <td class="text-end">{{ c.coefficient }}</td>
-          <td class="text-end">
-            <span class="badge bg-secondary">{{ c.notes|length }}/{{ c.classe.eleves|length }}</span>
-          </td>
-          <td class="text-end">
-            <a href="{{ url_for('vie_scolaire.controle_saisie', controle_id=c.id) }}"
-               class="btn btn-xs btn-outline-primary btn-sm">Saisir</a>
-            <form method="post" action="{{ url_for('vie_scolaire.controle_supprimer', controle_id=c.id) }}"
-                  class="d-inline" onsubmit="return confirm('Supprimer ce contrôle et toutes ses notes ?')">
-              <button class="btn btn-sm btn-outline-danger">Suppr.</button>
-            </form>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+<div class="bg-surface border border-border-subtle rounded-xl overflow-hidden">
+  <table class="w-full zebra-stripe">
+    <thead>
+      <tr class="bg-surface-muted text-label-sm uppercase tracking-wider text-on-surface-variant">
+        <th class="px-4 py-3 text-left font-semibold">Date</th>
+        <th class="px-4 py-3 text-left font-semibold">Intitulé</th>
+        <th class="px-4 py-3 text-left font-semibold">Classe</th>
+        <th class="px-4 py-3 text-left font-semibold">Matière</th>
+        <th class="px-4 py-3 text-left font-semibold">Trimestre</th>
+        <th class="px-4 py-3 text-right font-semibold">Coef.</th>
+        <th class="px-4 py-3 text-right font-semibold">Notes</th>
+        <th class="px-4 py-3"></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for c in controles %}
+      <tr class="border-b border-border-subtle last:border-b-0">
+        <td class="px-4 py-3 whitespace-nowrap">{{ c.date.strftime('%d/%m/%Y') }}</td>
+        <td class="px-4 py-3">
+          <a href="{{ url_for('vie_scolaire.controle_saisie', controle_id=c.id) }}" class="text-primary hover:underline">{{ c.intitule }}</a>
+        </td>
+        <td class="px-4 py-3 text-on-surface-variant">{{ c.classe.nom }}</td>
+        <td class="px-4 py-3 text-on-surface-variant">{{ c.matiere.nom }}</td>
+        <td class="px-4 py-3 text-on-surface-variant">{{ c.trimestre.code if c.trimestre else '—' }}</td>
+        <td class="px-4 py-3 text-right">{{ c.coefficient }}</td>
+        <td class="px-4 py-3 text-right">
+          {{ badge(c.notes|length ~ '/' ~ c.classe.eleves|length, 'neutral') }}
+        </td>
+        <td class="px-4 py-3 text-right whitespace-nowrap">
+          <div class="flex gap-2 justify-end">
+            {{ bouton('Saisir', variant='ghost', href=url_for('vie_scolaire.controle_saisie', controle_id=c.id), attrs='class="!px-3 !py-1.5 text-body-md"') }}
+            {{ bouton_supprimer(url_for('vie_scolaire.controle_supprimer', controle_id=c.id), label='Suppr.') }}
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </div>
 {% else %}
-<div class="text-muted fst-italic">Aucun contrôle trouvé.</div>
+<div class="bg-surface border border-border-subtle rounded-xl text-center text-on-surface-variant py-16">
+  Aucun contrôle trouvé.
+</div>
 {% endif %}
 
 {% endblock %}

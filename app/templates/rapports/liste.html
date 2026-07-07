@@ -1,58 +1,67 @@
 {% extends "base.html" %}
+{% from "_macros.html" import bouton, badge %}
 {% block title %}Rapports{% endblock %}
+{% block page_title %}Rapports{% endblock %}
 {% block content %}
 
-<h2 class="mb-4">Rapports</h2>
+{% set champ_select = "w-full border border-border-subtle rounded-lg px-3 py-2 text-body-md focus:ring-2 focus:ring-primary/20 focus:border-primary" %}
+{% set champ_texte = "border border-border-subtle rounded-lg px-3 py-2 text-body-md focus:ring-2 focus:ring-primary/20 focus:border-primary" %}
+{% set libelle = "block text-label-sm normal-case tracking-normal font-semibold text-on-surface-variant mb-1.5" %}
 
-<div class="card mb-5">
-  <div class="card-header fw-semibold">Générer un rapport</div>
-  <div class="card-body">
+<div class="bg-surface border border-border-subtle rounded-xl mb-8">
+  <div class="border-b border-border-subtle px-6 py-4 text-headline-md">Générer un rapport</div>
+  <div class="p-6">
     <form method="post" action="{{ url_for('rapports.generer') }}">
 
-      <div class="row g-4">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
 
         {# --- Portée : école / classe(s) / élève(s) --- #}
-        <div class="col-md-4">
-          <div class="fw-semibold small mb-2">Élèves concernés</div>
-          <div class="form-check">
-            <input class="form-check-input" type="radio" name="portee" value="ecole" id="portee-ecole" checked
-                   onchange="document.getElementById('bloc-classe').hidden=true; document.getElementById('bloc-eleves').hidden=true;">
-            <label class="form-check-label" for="portee-ecole">École entière</label>
-          </div>
-          <div class="form-check">
-            <input class="form-check-input" type="radio" name="portee" value="classe" id="portee-classe"
-                   onchange="document.getElementById('bloc-classe').hidden=false; document.getElementById('bloc-eleves').hidden=true;">
-            <label class="form-check-label" for="portee-classe">Une ou plusieurs classes</label>
-          </div>
-          <div class="form-check mb-2">
-            <input class="form-check-input" type="radio" name="portee" value="eleves" id="portee-eleves"
-                   onchange="document.getElementById('bloc-classe').hidden=true; document.getElementById('bloc-eleves').hidden=false;">
-            <label class="form-check-label" for="portee-eleves">Élève(s) spécifique(s)</label>
+        <div>
+          <div class="font-semibold text-body-md mb-2">Élèves concernés</div>
+          <div class="space-y-1.5 mb-2">
+            <label class="flex items-center gap-2">
+              <input type="radio" name="portee" value="ecole" id="portee-ecole" checked
+                     class="text-primary focus:ring-primary/20"
+                     onchange="document.getElementById('bloc-classe').hidden=true; document.getElementById('bloc-eleves').hidden=true;">
+              École entière
+            </label>
+            <label class="flex items-center gap-2">
+              <input type="radio" name="portee" value="classe" id="portee-classe"
+                     class="text-primary focus:ring-primary/20"
+                     onchange="document.getElementById('bloc-classe').hidden=false; document.getElementById('bloc-eleves').hidden=true;">
+              Une ou plusieurs classes
+            </label>
+            <label class="flex items-center gap-2">
+              <input type="radio" name="portee" value="eleves" id="portee-eleves"
+                     class="text-primary focus:ring-primary/20"
+                     onchange="document.getElementById('bloc-classe').hidden=true; document.getElementById('bloc-eleves').hidden=false;">
+              Élève(s) spécifique(s)
+            </label>
           </div>
 
           <div id="bloc-classe" hidden>
-            <select name="classe_ids" class="form-select form-select-sm" multiple size="5">
+            <select name="classe_ids" class="{{ champ_select }}" multiple size="5">
               {% for c in classes %}
                 <option value="{{ c.id }}">{{ c.nom }}</option>
               {% endfor %}
             </select>
-            <div class="form-text">Ctrl/Cmd + clic pour en choisir plusieurs.</div>
+            <div class="text-label-sm normal-case tracking-normal text-on-surface-variant mt-1">Ctrl/Cmd + clic pour en choisir plusieurs.</div>
           </div>
 
           <div id="bloc-eleves" hidden>
-            <select name="eleve_ids" class="form-select form-select-sm" multiple size="5">
+            <select name="eleve_ids" class="{{ champ_select }}" multiple size="5">
               {% for e in eleves %}
                 <option value="{{ e.id }}">{{ e.nom_complet }} ({{ e.classe.nom }})</option>
               {% endfor %}
             </select>
-            <div class="form-text">Ctrl/Cmd + clic pour en choisir plusieurs.</div>
+            <div class="text-label-sm normal-case tracking-normal text-on-surface-variant mt-1">Ctrl/Cmd + clic pour en choisir plusieurs.</div>
           </div>
         </div>
 
         {# --- Période : mois / trimestre / année / cycle / personnalisée --- #}
-        <div class="col-md-4">
-          <div class="fw-semibold small mb-2">Période</div>
-          <select name="periode_type" class="form-select form-select-sm mb-2" id="periode-type" onchange="
+        <div>
+          <div class="font-semibold text-body-md mb-2">Période</div>
+          <select name="periode_type" class="{{ champ_select }} mb-2" id="periode-type" onchange="
             document.getElementById('periode-mois').hidden = this.value !== 'mois';
             document.getElementById('periode-trimestre').hidden = this.value !== 'trimestre';
             document.getElementById('periode-annee').hidden = this.value !== 'annee';
@@ -67,24 +76,24 @@
           </select>
 
           <div id="periode-mois">
-            <input type="month" name="mois" class="form-control form-control-sm">
+            <input type="month" name="mois" class="{{ champ_texte }} w-full">
           </div>
           <div id="periode-trimestre" hidden>
-            <select name="trimestre_id" class="form-select form-select-sm">
+            <select name="trimestre_id" class="{{ champ_select }}">
               {% for t in trimestres %}
                 <option value="{{ t.id }}">{{ t.code }} ({{ t.date_debut.strftime('%d/%m/%Y') }} – {{ t.date_fin.strftime('%d/%m/%Y') }})</option>
               {% endfor %}
             </select>
           </div>
           <div id="periode-annee" hidden>
-            <select name="annee_id" class="form-select form-select-sm">
+            <select name="annee_id" class="{{ champ_select }}">
               {% for a in annees %}
                 <option value="{{ a.id }}">{{ a.libelle }}{% if a.active %} (active){% endif %}</option>
               {% endfor %}
             </select>
           </div>
           <div id="periode-cycle" hidden>
-            <select name="cycle_id" class="form-select form-select-sm">
+            <select name="cycle_id" class="{{ champ_select }}">
               {% for cy in cycles %}
                 <option value="{{ cy.id }}">
                   {{ cy.date_debut.strftime('%d/%m/%Y') }} – {{ cy.date_fin.strftime('%d/%m/%Y') }}
@@ -94,87 +103,89 @@
             </select>
           </div>
           <div id="periode-personnalise" hidden>
-            <label class="form-label small mb-0">Du</label>
-            <input type="date" name="date_debut" class="form-control form-control-sm mb-2">
-            <label class="form-label small mb-0">Au</label>
-            <input type="date" name="date_fin" class="form-control form-control-sm">
+            <label class="{{ libelle }}">Du</label>
+            <input type="date" name="date_debut" class="{{ champ_texte }} w-full mb-2">
+            <label class="{{ libelle }}">Au</label>
+            <input type="date" name="date_fin" class="{{ champ_texte }} w-full">
           </div>
         </div>
 
         {# --- Événements à inclure --- #}
-        <div class="col-md-4">
-          <div class="fw-semibold small mb-2">Événements à inclure</div>
-          {% for code in types_evenements %}
-          <div class="form-check">
-            <input class="form-check-input" type="checkbox" name="types" value="{{ code }}" id="type-{{ code }}" checked>
-            <label class="form-check-label" for="type-{{ code }}">{{ libelles_types[code] }}</label>
+        <div>
+          <div class="font-semibold text-body-md mb-2">Événements à inclure</div>
+          <div class="space-y-1.5">
+            {% for code in types_evenements %}
+            <label class="flex items-center gap-2">
+              <input type="checkbox" name="types" value="{{ code }}" id="type-{{ code }}" checked
+                     class="rounded text-primary focus:ring-primary/20">
+              {{ libelles_types[code] }}
+            </label>
+            {% endfor %}
           </div>
-          {% endfor %}
         </div>
 
       </div>
 
-      <button type="submit" class="btn btn-primary mt-4">Générer le rapport</button>
-      <div class="form-text mt-1">Chaque élève occupe sa propre page dans le PDF (nom en en-tête, puis ses événements).</div>
+      <div class="mt-6">
+        {{ bouton('Générer le rapport', variant='primary', type='submit') }}
+        <div class="text-label-sm normal-case tracking-normal text-on-surface-variant mt-2">
+          Chaque élève occupe sa propre page dans le PDF (nom en en-tête, puis ses événements).
+        </div>
+      </div>
     </form>
   </div>
 </div>
 
 {# Historique #}
-<h5 class="mb-3">Historique des rapports générés</h5>
+<h2 class="text-headline-md mb-3">Historique des rapports générés</h2>
 {% if rapports %}
-<div class="card">
-  <div class="card-body p-0">
-    <table class="table table-sm mb-0">
-      <thead class="table-light">
-        <tr>
-          <th>Date</th>
-          <th>Type</th>
-          <th>Titre</th>
-          <th>PDF</th>
-          <th>Excel</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for r in rapports %}
-        <tr>
-          <td>{{ r.date_creation.strftime('%d/%m/%Y %H:%M') }}</td>
-          <td>
-            <span class="badge
-              {% if r.type == 'evenements' %}bg-primary
-              {% elif r.type == 'discipline' %}bg-secondary
-              {% else %}bg-info text-dark{% endif %}">
-              {{ r.type }}
-            </span>
-          </td>
-          <td>{{ r.titre }}</td>
-          <td>
-            {% if r.fichier_pdf %}
-              <a href="{{ url_for('rapports.telecharger', rapport_id=r.id, format='pdf') }}"
-                 class="btn btn-xs btn-sm btn-outline-danger">PDF</a>
-            {% else %}—{% endif %}
-          </td>
-          <td>
-            {% if r.fichier_excel %}
-              <a href="{{ url_for('rapports.telecharger', rapport_id=r.id, format='excel') }}"
-                 class="btn btn-xs btn-sm btn-outline-success">Excel</a>
-            {% else %}—{% endif %}
-          </td>
-          <td>
-            <form method="post" action="{{ url_for('rapports.supprimer', rapport_id=r.id) }}"
-                  onsubmit="return confirm('Supprimer définitivement ce rapport ?');" class="d-inline">
-              <button type="submit" class="btn btn-sm btn-outline-danger">Supprimer</button>
-            </form>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+<div class="bg-surface border border-border-subtle rounded-xl overflow-hidden">
+  <table class="w-full zebra-stripe">
+    <thead>
+      <tr class="bg-surface-muted text-label-sm uppercase tracking-wider text-on-surface-variant">
+        <th class="px-4 py-3 text-left font-semibold">Date</th>
+        <th class="px-4 py-3 text-left font-semibold">Type</th>
+        <th class="px-4 py-3 text-left font-semibold">Titre</th>
+        <th class="px-4 py-3 text-left font-semibold">PDF</th>
+        <th class="px-4 py-3 text-left font-semibold">Excel</th>
+        <th class="px-4 py-3"></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in rapports %}
+      <tr class="border-b border-border-subtle last:border-b-0">
+        <td class="px-4 py-3 whitespace-nowrap">{{ r.date_creation.strftime('%d/%m/%Y %H:%M') }}</td>
+        <td class="px-4 py-3">
+          {% if r.type == 'evenements' %}{{ badge(r.type, 'primary') }}
+          {% elif r.type == 'discipline' %}{{ badge(r.type, 'neutral') }}
+          {% else %}{{ badge(r.type, 'primary') }}{% endif %}
+        </td>
+        <td class="px-4 py-3">{{ r.titre }}</td>
+        <td class="px-4 py-3">
+          {% if r.fichier_pdf %}
+            <a href="{{ url_for('rapports.telecharger', rapport_id=r.id, format='pdf') }}"
+               class="text-error hover:underline text-body-md font-semibold">PDF</a>
+          {% else %}—{% endif %}
+        </td>
+        <td class="px-4 py-3">
+          {% if r.fichier_excel %}
+            <a href="{{ url_for('rapports.telecharger', rapport_id=r.id, format='excel') }}"
+               class="text-success-green hover:underline text-body-md font-semibold">Excel</a>
+          {% else %}—{% endif %}
+        </td>
+        <td class="px-4 py-3">
+          <form method="post" action="{{ url_for('rapports.supprimer', rapport_id=r.id) }}"
+                onsubmit="return confirm('Supprimer définitivement ce rapport ?');" class="inline">
+            <button type="submit" class="text-error hover:underline text-body-md font-semibold">Supprimer</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </div>
 {% else %}
-<div class="text-muted fst-italic">Aucun rapport généré pour l'instant.</div>
+<div class="text-on-surface-variant italic">Aucun rapport généré pour l'instant.</div>
 {% endif %}
 
 {% endblock %}

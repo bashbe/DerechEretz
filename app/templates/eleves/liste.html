@@ -1,32 +1,31 @@
 {% extends "base.html" %}
 {% block title %}Élèves{% endblock %}
+{% block page_title %}Élèves{% endblock %}
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <h2 class="mb-0">Élèves</h2>
-</div>
 
 {% if not classes %}
-  <p class="text-muted">Aucune classe enregistrée.</p>
+  <p class="text-on-surface-variant">Aucune classe enregistrée.</p>
 {% endif %}
 
-<div class="row g-3">
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
   {% for classe in classes %}
-  <div class="col-md-6 col-lg-4">
-    <div class="card h-100">
-      <div class="card-header fw-semibold d-flex justify-content-between align-items-center">
-        {{ classe.nom }}
-        <span class="badge bg-secondary">{{ classe.eleves|length }}</span>
-      </div>
-      <div class="list-group list-group-flush">
-        {% for eleve in classe.eleves | sort(attribute='nom') %}
-          <a href="{{ url_for('eleves.fiche', eleve_id=eleve.id) }}"
-             class="list-group-item list-group-item-action py-2">
-            <span class="fw-semibold">{{ eleve.nom }}</span> {{ eleve.prenom }}
-          </a>
-        {% else %}
-          <div class="list-group-item text-muted fst-italic">Aucun élève dans cette classe.</div>
-        {% endfor %}
-      </div>
+  <div class="bg-surface border border-border-subtle rounded-xl overflow-hidden">
+    <div class="flex items-center justify-between px-5 py-3 border-b border-border-subtle">
+      <span class="text-headline-md">{{ classe.nom }}</span>
+      <span class="inline-block rounded-full px-3 py-1 text-label-sm normal-case tracking-normal font-semibold bg-secondary/10 text-secondary">{{ classe.eleves|length }}</span>
+    </div>
+    <div class="divide-y divide-border-subtle">
+      {% for eleve in classe.eleves | sort(attribute='nom') %}
+        <a href="{{ url_for('eleves.fiche', eleve_id=eleve.id) }}"
+           class="flex items-center gap-3 px-5 py-2.5 hover:bg-surface-muted">
+          <span class="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-body-md font-bold shrink-0">
+            {{ eleve.nom[0]|upper }}
+          </span>
+          <span class="truncate"><span class="font-semibold">{{ eleve.nom }}</span> {{ eleve.prenom }}</span>
+        </a>
+      {% else %}
+        <div class="px-5 py-3 text-on-surface-variant italic">Aucun élève dans cette classe.</div>
+      {% endfor %}
     </div>
   </div>
   {% endfor %}

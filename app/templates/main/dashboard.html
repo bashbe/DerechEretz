@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Tableau de bord{% endblock %}
+{% block page_title %}Tableau de bord{% endblock %}
+{% block content %}
+
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+  {% set cartes = [
+    ('groups', 'Total élèves', total_eleves, 'bg-primary/10 text-primary'),
+    ('meeting_room', 'Classes', total_classes, 'bg-tertiary/10 text-tertiary'),
+    ('report', 'Infractions mineures (7j)', infractions_recentes, 'bg-error/10 text-error'),
+    ('how_to_reg', 'Comptes actifs', comptes_actifs, 'bg-success-green/10 text-success-green'),
+  ] %}
+  {% for icone, label, valeur, couleur in cartes %}
+  <div class="bg-surface border border-border-subtle rounded-xl p-6 hover:shadow-md transition-shadow">
+    <div class="flex items-center justify-between mb-3">
+      <span class="text-label-sm normal-case tracking-normal font-semibold text-on-surface-variant">{{ label }}</span>
+      <span class="w-9 h-9 rounded-lg {{ couleur }} flex items-center justify-center">
+        <span class="material-symbols-outlined text-base">{{ icone }}</span>
+      </span>
+    </div>
+    <div class="text-headline-xl">{{ valeur }}</div>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="bg-surface border border-border-subtle rounded-xl">
+  <div class="border-b border-border-subtle px-6 py-4 text-headline-md">Activité récente</div>
+  {% if activite_recente %}
+  <ul class="divide-y divide-border-subtle">
+    {% for vue in activite_recente %}
+    <li>
+      <a href="{{ url_for('vie_scolaire.evenement_fiche', type_evt=vue.type, evt_id=vue.id) }}"
+         class="flex items-center gap-4 px-6 py-3 hover:bg-surface-muted">
+        <span class="text-on-surface-variant text-body-md whitespace-nowrap w-24 shrink-0">
+          {{ vue.date.strftime('%d/%m/%Y') if vue.date else '—' }}
+        </span>
+        <span class="w-32 shrink-0">
+          {% set couleurs_type = {'note': 'primary', 'observation': 'neutral', 'infraction_mineure': 'warning', 'infraction_majeure': 'danger'} %}
+          {% set couleur = 'danger' if vue.type == 'presence' and vue.obj.statut == 'absent' else ('warning' if vue.type == 'presence' else couleurs_type.get(vue.type, 'neutral')) %}
+          {% from "_macros.html" import badge %}
+          {{ badge(vue.libelle_type, couleur) }}
+        </span>
+        <span class="flex-1 min-w-0 truncate">
+          <strong>{{ vue.eleve.nom_complet }}</strong> — {{ vue.resume }}
+        </span>
+        <span class="text-on-surface-variant text-body-md hidden sm:inline">{{ vue.eleve.classe.nom }}</span>
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="text-on-surface-variant px-6 py-8 text-center">Aucune activité sur les 30 derniers jours.</p>
+  {% endif %}
+</div>
+
+{% endblock %}

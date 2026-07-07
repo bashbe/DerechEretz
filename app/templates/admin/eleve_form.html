@@ -1,27 +1,33 @@
 {% extends "base.html" %}
-{% from "_macros.html" import champ %}
+{% from "_macros.html" import champ, bouton, carte %}
 {% block title %}{{ titre }}{% endblock %}
 {% block content %}
-<h1 class="h3 mb-3">{{ titre }}</h1>
-<form method="post" class="col-md-6">
-  {{ form.hidden_tag() }}
-  {{ champ(form.nom) }}
-  {{ champ(form.prenom) }}
-  {{ champ(form.classe_id) }}
-  {{ champ(form.date_naissance) }}
-  {{ champ(form.adresse) }}
+<h1 class="text-headline-lg mb-4">{{ titre }}</h1>
+<div class="max-w-xl">
+  {% call carte() %}
+  <form method="post">
+    {{ form.hidden_tag() }}
+    {{ champ(form.nom) }}
+    {{ champ(form.prenom) }}
+    {{ champ(form.classe_id) }}
+    {{ champ(form.date_naissance) }}
+    {{ champ(form.adresse) }}
 
-  <h2 class="h6 mt-4">Contact du père</h2>
-  {{ champ(form.pere_nom) }}
-  {{ champ(form.pere_telephone) }}
-  {{ champ(form.pere_email) }}
+    <h2 class="text-headline-md mt-6 mb-2">Contact du père</h2>
+    {{ champ(form.pere_nom) }}
+    {{ champ(form.pere_telephone) }}
+    {{ champ(form.pere_email) }}
 
-  <h2 class="h6 mt-4">Contact de la mère</h2>
-  {{ champ(form.mere_nom) }}
-  {{ champ(form.mere_telephone) }}
-  {{ champ(form.mere_email) }}
+    <h2 class="text-headline-md mt-6 mb-2">Contact de la mère</h2>
+    {{ champ(form.mere_nom) }}
+    {{ champ(form.mere_telephone) }}
+    {{ champ(form.mere_email) }}
 
-  {{ form.submit(class="btn btn-primary") }}
-  <a href="{{ url_for('admin.eleves') }}" class="btn btn-link">Annuler</a>
-</form>
+    <div class="flex items-center gap-3 mt-2">
+      {{ bouton('Enregistrer', variant='primary', type='submit') }}
+      {{ bouton('Annuler', variant='ghost', href=url_for('admin.eleves')) }}
+    </div>
+  </form>
+  {% endcall %}
+</div>
 {% endblock %}

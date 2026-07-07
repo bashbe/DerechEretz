@@ -1,131 +1,132 @@
 {% extends "base.html" %}
-{% from "_macros.html" import bouton_supprimer %}
+{% from "_macros.html" import bouton, bouton_supprimer, badge %}
 {% block title %}{{ vue.libelle_type }} — {{ vue.eleve.nom_complet }}{% endblock %}
+{% block page_title %}{{ vue.libelle_type }}{% endblock %}
 {% block content %}
 
-<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+{% set couleurs_type = {
+  'note': 'primary', 'observation': 'neutral', 'infraction_mineure': 'warning', 'infraction_majeure': 'danger',
+} %}
+{% set couleur_badge = 'danger' if vue.type == 'presence' and vue.obj.statut == 'absent' else ('warning' if vue.type == 'presence' else couleurs_type.get(vue.type, 'neutral')) %}
+
+<div class="flex justify-between items-start mb-4 flex-wrap gap-3">
   <div>
-    <nav aria-label="breadcrumb">
-      <ol class="breadcrumb mb-1">
-        <li class="breadcrumb-item"><a href="{{ url_for('vie_scolaire.index') }}">Vie scolaire</a></li>
-        <li class="breadcrumb-item"><a href="{{ url_for('vie_scolaire.evenements_liste') }}">Événements</a></li>
-        <li class="breadcrumb-item active">{{ vue.libelle_type }}</li>
-      </ol>
+    <nav class="text-body-md text-on-surface-variant mb-1">
+      <a href="{{ url_for('vie_scolaire.index') }}" class="hover:text-primary">Vie scolaire</a>
+      <span class="mx-1">/</span>
+      <a href="{{ url_for('vie_scolaire.evenements_liste') }}" class="hover:text-primary">Événements</a>
+      <span class="mx-1">/</span>
+      <span>{{ vue.libelle_type }}</span>
     </nav>
-    <h2 class="mb-0">
-      <span class="badge {{ vue.badge }} fs-6 align-middle me-2">{{ vue.libelle_type }}</span>
-      {{ vue.eleve.nom_complet }}
-    </h2>
-    <small class="text-muted">{{ vue.eleve.classe.nom }}</small>
+    <div class="flex items-center gap-2 mb-1">
+      {{ badge(vue.libelle_type, couleur_badge) }}
+      <span class="text-headline-lg">{{ vue.eleve.nom_complet }}</span>
+    </div>
+    <div class="text-on-surface-variant text-body-md">{{ vue.eleve.classe.nom }}</div>
   </div>
   {% if peut_modifier %}
-  <div class="d-flex gap-2">
-    <a href="{{ url_for('vie_scolaire.evenement_modifier', type_evt=vue.type, evt_id=vue.id) }}"
-       class="btn btn-sm btn-outline-primary">Modifier</a>
+  <div class="flex gap-2">
+    {{ bouton('Modifier', variant='ghost', href=url_for('vie_scolaire.evenement_modifier', type_evt=vue.type, evt_id=vue.id)) }}
     {{ bouton_supprimer(url_for('vie_scolaire.evenement_supprimer', type_evt=vue.type, evt_id=vue.id)) }}
   </div>
   {% endif %}
 </div>
 
-<div class="row g-3">
-  <div class="col-md-7">
-    <div class="card h-100">
-      <div class="card-header fw-semibold">Détail</div>
-      <div class="card-body">
-        <dl class="row mb-0">
-          <dt class="col-4">Date</dt>
-          <dd class="col-8">
-            {{ vue.date.strftime('%d/%m/%Y') if vue.date else '—' }}
-            {% if vue.heure %} · {{ vue.heure.strftime('%H:%M') }}{% endif %}
+<div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+  <div class="md:col-span-7 bg-surface border border-border-subtle rounded-xl">
+    <div class="border-b border-border-subtle px-6 py-4 text-headline-md">Détail</div>
+    <div class="p-6">
+      <dl class="grid grid-cols-3 gap-y-3 text-body-md">
+        <dt class="text-on-surface-variant">Date</dt>
+        <dd class="col-span-2">
+          {{ vue.date.strftime('%d/%m/%Y') if vue.date else '—' }}
+          {% if vue.heure %} · {{ vue.heure.strftime('%H:%M') }}{% endif %}
+        </dd>
+
+        {% if vue.type == 'note' %}
+          <dt class="text-on-surface-variant">Note</dt>
+          <dd class="col-span-2 font-bold text-headline-md
+            {% if vue.obj.valeur < 10 %}text-error{% elif vue.obj.valeur >= 14 %}text-success-green{% endif %}">
+            {{ vue.obj.valeur }}/20
           </dd>
-
-          {% if vue.type == 'note' %}
-            <dt class="col-4">Note</dt>
-            <dd class="col-8 fw-bold fs-5
-              {% if vue.obj.valeur < 10 %}text-danger{% elif vue.obj.valeur >= 14 %}text-success{% endif %}">
-              {{ vue.obj.valeur }}/20
+          {% if vue.obj.controle %}
+            <dt class="text-on-surface-variant">Contrôle</dt>
+            <dd class="col-span-2">
+              <a href="{{ url_for('vie_scolaire.controle_saisie', controle_id=vue.obj.controle_id) }}" class="text-primary hover:underline">
+                {{ vue.obj.controle.intitule }}
+              </a>
+              <span class="text-on-surface-variant">(coef. {{ vue.obj.controle.coefficient }})</span>
             </dd>
-            {% if vue.obj.controle %}
-              <dt class="col-4">Contrôle</dt>
-              <dd class="col-8">
-                <a href="{{ url_for('vie_scolaire.controle_saisie', controle_id=vue.obj.controle_id) }}">
-                  {{ vue.obj.controle.intitule }}
-                </a>
-                <small class="text-muted">(coef. {{ vue.obj.controle.coefficient }})</small>
-              </dd>
-            {% endif %}
-          {% elif vue.type == 'observation' %}
-            <dt class="col-4">Titre</dt>
-            <dd class="col-8 fw-semibold">{{ vue.obj.titre }}</dd>
-            <dt class="col-4">Contenu</dt>
-            <dd class="col-8" style="white-space: pre-line">{{ vue.obj.contenu }}</dd>
-          {% elif vue.type == 'infraction_mineure' %}
-            <dt class="col-4">Infraction</dt>
-            <dd class="col-8">
-              {{ vue.obj.type_infraction.libelle }}
-              <span class="text-danger ms-1">−{{ vue.points_deduits }} pt{{ 's' if vue.points_deduits > 1 }}</span>
-            </dd>
-            {% if vue.obj.cycle %}
-              <dt class="col-4">Cycle</dt>
-              <dd class="col-8">
-                {{ vue.obj.cycle.date_debut.strftime('%d/%m/%Y') }} → {{ vue.obj.cycle.date_fin.strftime('%d/%m/%Y') }}
-                {% if vue.obj.cycle.est_cloture %}<span class="badge bg-secondary ms-1">clôturé</span>{% endif %}
-              </dd>
-            {% endif %}
-          {% elif vue.type == 'infraction_majeure' %}
-            <dt class="col-4">Gravité</dt>
-            <dd class="col-8">
-              <span class="badge {{ vue.badge }}">
-                {% if vue.obj.gravite == 'mineure_grave' %}Mineure grave
-                {% elif vue.obj.gravite == 'moyenne' %}Moyenne
-                {% else %}Majeure{% endif %}
-              </span>
-            </dd>
-            <dt class="col-4">Description</dt>
-            <dd class="col-8" style="white-space: pre-line">{{ vue.obj.description }}</dd>
-            {% if vue.obj.sanction %}
-              <dt class="col-4">Sanction</dt>
-              <dd class="col-8">{{ vue.obj.sanction }}</dd>
-            {% endif %}
-          {% elif vue.type == 'presence' %}
-            <dt class="col-4">Statut</dt>
-            <dd class="col-8"><span class="badge {{ vue.badge }}">{{ vue.libelle_type }}</span></dd>
-            <dt class="col-4">Justifié</dt>
-            <dd class="col-8">{% if vue.obj.justifie %}<span class="text-success">✓ oui</span>{% else %}non{% endif %}</dd>
-            {% if vue.obj.motif %}
-              <dt class="col-4">Motif</dt>
-              <dd class="col-8">{{ vue.obj.motif }}</dd>
-            {% endif %}
           {% endif %}
-
-          {% if vue.matiere %}
-            <dt class="col-4">Matière</dt>
-            <dd class="col-8">{{ vue.matiere.nom }}</dd>
+        {% elif vue.type == 'observation' %}
+          <dt class="text-on-surface-variant">Titre</dt>
+          <dd class="col-span-2 font-semibold">{{ vue.obj.titre }}</dd>
+          <dt class="text-on-surface-variant">Contenu</dt>
+          <dd class="col-span-2 whitespace-pre-line">{{ vue.obj.contenu }}</dd>
+        {% elif vue.type == 'infraction_mineure' %}
+          <dt class="text-on-surface-variant">Infraction</dt>
+          <dd class="col-span-2">
+            {{ vue.obj.type_infraction.libelle }}
+            <span class="text-error ml-1">−{{ vue.points_deduits }} pt{{ 's' if vue.points_deduits > 1 }}</span>
+          </dd>
+          {% if vue.obj.cycle %}
+            <dt class="text-on-surface-variant">Cycle</dt>
+            <dd class="col-span-2">
+              {{ vue.obj.cycle.date_debut.strftime('%d/%m/%Y') }} → {{ vue.obj.cycle.date_fin.strftime('%d/%m/%Y') }}
+              {% if vue.obj.cycle.est_cloture %}<span class="ml-1">{{ badge('clôturé', 'neutral') }}</span>{% endif %}
+            </dd>
           {% endif %}
-        </dl>
-      </div>
+        {% elif vue.type == 'infraction_majeure' %}
+          <dt class="text-on-surface-variant">Gravité</dt>
+          <dd class="col-span-2">
+            {% if vue.obj.gravite == 'mineure_grave' %}
+              {{ badge('Mineure grave', 'danger') }}
+            {% elif vue.obj.gravite == 'moyenne' %}
+              {{ badge('Moyenne', 'danger') }}
+            {% else %}
+              {{ badge('Majeure', 'danger') }}
+            {% endif %}
+          </dd>
+          <dt class="text-on-surface-variant">Description</dt>
+          <dd class="col-span-2 whitespace-pre-line">{{ vue.obj.description }}</dd>
+          {% if vue.obj.sanction %}
+            <dt class="text-on-surface-variant">Sanction</dt>
+            <dd class="col-span-2">{{ vue.obj.sanction }}</dd>
+          {% endif %}
+        {% elif vue.type == 'presence' %}
+          <dt class="text-on-surface-variant">Statut</dt>
+          <dd class="col-span-2">{{ badge(vue.libelle_type, couleur_badge) }}</dd>
+          <dt class="text-on-surface-variant">Justifié</dt>
+          <dd class="col-span-2">{% if vue.obj.justifie %}<span class="text-success-green">✓ oui</span>{% else %}non{% endif %}</dd>
+          {% if vue.obj.motif %}
+            <dt class="text-on-surface-variant">Motif</dt>
+            <dd class="col-span-2">{{ vue.obj.motif }}</dd>
+          {% endif %}
+        {% endif %}
+
+        {% if vue.matiere %}
+          <dt class="text-on-surface-variant">Matière</dt>
+          <dd class="col-span-2">{{ vue.matiere.nom }}</dd>
+        {% endif %}
+      </dl>
     </div>
   </div>
 
-  <div class="col-md-5">
-    <div class="card h-100">
-      <div class="card-header fw-semibold">Contexte</div>
-      <div class="card-body">
-        <dl class="row mb-0 small">
-          <dt class="col-5">Élève</dt>
-          <dd class="col-7">
-            <a href="{{ url_for('eleves.fiche', eleve_id=vue.eleve.id) }}">{{ vue.eleve.nom_complet }}</a>
-          </dd>
-          <dt class="col-5">Classe</dt>
-          <dd class="col-7">{{ vue.eleve.classe.nom }}</dd>
-          <dt class="col-5">Éditeur</dt>
-          <dd class="col-7">{{ vue.saisi_par.nom }} <span class="badge bg-secondary">{{ vue.saisi_par.role }}</span></dd>
-        </dl>
-        <hr>
-        <a href="{{ url_for('eleves.fiche', eleve_id=vue.eleve.id) }}" class="btn btn-sm btn-outline-secondary">
-          Ouvrir la fiche élève
-        </a>
-      </div>
+  <div class="md:col-span-5 bg-surface border border-border-subtle rounded-xl">
+    <div class="border-b border-border-subtle px-6 py-4 text-headline-md">Contexte</div>
+    <div class="p-6">
+      <dl class="grid grid-cols-2 gap-y-3 text-body-md">
+        <dt class="text-on-surface-variant">Élève</dt>
+        <dd>
+          <a href="{{ url_for('eleves.fiche', eleve_id=vue.eleve.id) }}" class="text-primary hover:underline">{{ vue.eleve.nom_complet }}</a>
+        </dd>
+        <dt class="text-on-surface-variant">Classe</dt>
+        <dd>{{ vue.eleve.classe.nom }}</dd>
+        <dt class="text-on-surface-variant">Éditeur</dt>
+        <dd class="flex items-center gap-2">{{ vue.saisi_par.nom }} {{ badge(vue.saisi_par.role, 'neutral') }}</dd>
+      </dl>
+      <hr class="my-4 border-border-subtle">
+      {{ bouton('Ouvrir la fiche élève', variant='ghost', href=url_for('eleves.fiche', eleve_id=vue.eleve.id)) }}
     </div>
   </div>
 </div>

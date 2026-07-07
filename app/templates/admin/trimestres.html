@@ -1,28 +1,38 @@
 {% extends "base.html" %}
-{% from "_macros.html" import bouton_supprimer %}
+{% from "_macros.html" import bouton, bouton_supprimer %}
 {% block title %}Trimestres{% endblock %}
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <h1 class="h3">Trimestres</h1>
-  <a href="{{ url_for('admin.trimestre_nouveau') }}" class="btn btn-primary">+ Nouveau trimestre</a>
+<div class="flex justify-between items-center mb-4">
+  <h1 class="text-headline-lg">Trimestres</h1>
+  {{ bouton('+ Nouveau trimestre', variant='primary', href=url_for('admin.trimestre_nouveau')) }}
 </div>
-<table class="table table-striped">
-  <thead><tr><th>Année</th><th>Code</th><th>Début</th><th>Fin</th><th></th></tr></thead>
-  <tbody>
-  {% for t in trimestres %}
-    <tr>
-      <td>{{ t.annee.libelle }}</td>
-      <td>{{ t.code }}</td>
-      <td>{{ t.date_debut.strftime('%d/%m/%Y') }}</td>
-      <td>{{ t.date_fin.strftime('%d/%m/%Y') }}</td>
-      <td class="text-end">
-        <a href="{{ url_for('admin.trimestre_modifier', trimestre_id=t.id) }}" class="btn btn-sm btn-outline-secondary">Modifier</a>
-        {{ bouton_supprimer(url_for('admin.trimestre_supprimer', trimestre_id=t.id)) }}
-      </td>
-    </tr>
-  {% else %}
-    <tr><td colspan="5" class="text-muted">Aucun trimestre.</td></tr>
-  {% endfor %}
-  </tbody>
-</table>
+<div class="bg-surface border border-border-subtle rounded-xl overflow-hidden">
+  <table class="w-full zebra-stripe">
+    <thead>
+      <tr class="bg-surface-muted text-label-sm uppercase tracking-wider text-on-surface-variant">
+        <th class="px-4 py-3 text-left font-semibold">Année</th>
+        <th class="px-4 py-3 text-left font-semibold">Code</th>
+        <th class="px-4 py-3 text-left font-semibold">Début</th>
+        <th class="px-4 py-3 text-left font-semibold">Fin</th>
+        <th class="px-4 py-3 text-left font-semibold"></th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for t in trimestres %}
+      <tr>
+        <td class="px-4 py-3">{{ t.annee.libelle }}</td>
+        <td class="px-4 py-3">{{ t.code }}</td>
+        <td class="px-4 py-3">{{ t.date_debut.strftime('%d/%m/%Y') }}</td>
+        <td class="px-4 py-3">{{ t.date_fin.strftime('%d/%m/%Y') }}</td>
+        <td class="px-4 py-3 text-right">
+          <a href="{{ url_for('admin.trimestre_modifier', trimestre_id=t.id) }}" class="text-primary hover:underline text-body-md">Modifier</a>
+          {{ bouton_supprimer(url_for('admin.trimestre_supprimer', trimestre_id=t.id)) }}
+        </td>
+      </tr>
+    {% else %}
+      <tr><td colspan="5" class="px-4 py-6 text-center text-on-surface-variant italic">Aucun trimestre.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
 {% endblock %}

@@ -1,25 +1,35 @@
 {% extends "base.html" %}
+{% from "_macros.html" import bouton, badge %}
 {% block title %}Barème infractions{% endblock %}
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <h1 class="h3">Barème des infractions mineures</h1>
-  <a href="{{ url_for('admin.bareme_nouveau') }}" class="btn btn-primary">+ Nouveau type</a>
+<div class="flex justify-between items-center mb-4">
+  <h1 class="text-headline-lg">Barème des infractions mineures</h1>
+  {{ bouton('+ Nouveau type', variant='primary', href=url_for('admin.bareme_nouveau')) }}
 </div>
-<table class="table table-striped">
-  <thead><tr><th>Libellé</th><th>Points déduits</th><th>Statut</th><th></th></tr></thead>
-  <tbody>
-  {% for type_infraction in types_infractions %}
-    <tr>
-      <td>{{ type_infraction.libelle }}</td>
-      <td>-{{ type_infraction.points_deduits }}</td>
-      <td>{% if type_infraction.actif %}<span class="badge text-bg-success">Actif</span>{% else %}<span class="badge text-bg-secondary">Inactif</span>{% endif %}</td>
-      <td class="text-end">
-        <a href="{{ url_for('admin.bareme_modifier', type_id=type_infraction.id) }}" class="btn btn-sm btn-outline-secondary">Modifier</a>
-      </td>
-    </tr>
-  {% else %}
-    <tr><td colspan="4" class="text-muted">Aucun type d'infraction défini.</td></tr>
-  {% endfor %}
-  </tbody>
-</table>
+<div class="bg-surface border border-border-subtle rounded-xl overflow-hidden">
+  <table class="w-full zebra-stripe">
+    <thead>
+      <tr class="bg-surface-muted text-label-sm uppercase tracking-wider text-on-surface-variant">
+        <th class="px-4 py-3 text-left font-semibold">Libellé</th>
+        <th class="px-4 py-3 text-left font-semibold">Points déduits</th>
+        <th class="px-4 py-3 text-left font-semibold">Statut</th>
+        <th class="px-4 py-3 text-left font-semibold"></th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for type_infraction in types_infractions %}
+      <tr>
+        <td class="px-4 py-3">{{ type_infraction.libelle }}</td>
+        <td class="px-4 py-3">-{{ type_infraction.points_deduits }}</td>
+        <td class="px-4 py-3">{% if type_infraction.actif %}{{ badge('Actif', 'success') }}{% else %}{{ badge('Inactif', 'neutral') }}{% endif %}</td>
+        <td class="px-4 py-3 text-right">
+          <a href="{{ url_for('admin.bareme_modifier', type_id=type_infraction.id) }}" class="text-primary hover:underline text-body-md">Modifier</a>
+        </td>
+      </tr>
+    {% else %}
+      <tr><td colspan="4" class="px-4 py-6 text-center text-on-surface-variant italic">Aucun type d'infraction défini.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
 {% endblock %}

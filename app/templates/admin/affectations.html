@@ -2,33 +2,42 @@
 {% from "_macros.html" import champ, bouton_supprimer %}
 {% block title %}Affectations{% endblock %}
 {% block content %}
-<h1 class="h3 mb-3">Affectations professeurs → matières/classes</h1>
-<div class="row">
-  <div class="col-md-5">
+<h1 class="text-headline-lg mb-4">Affectations professeurs → matières/classes</h1>
+<div class="flex flex-col md:flex-row gap-6">
+  <div class="md:w-5/12">
     <form method="post">
       {{ form.hidden_tag() }}
       {{ champ(form.professeur_id) }}
       {{ champ(form.matiere_id) }}
       {{ champ(form.classe_id) }}
-      {{ form.submit(class="btn btn-primary") }}
+      {{ form.submit(class="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-body-md font-semibold transition-colors bg-primary text-white hover:bg-primary/90") }}
     </form>
   </div>
-  <div class="col-md-7">
-    <table class="table table-striped">
-      <thead><tr><th>Professeur</th><th>Matière</th><th>Classe</th><th></th></tr></thead>
-      <tbody>
-      {% for a in affectations %}
-        <tr>
-          <td>{{ a.professeur.nom }}</td>
-          <td>{{ a.matiere.nom }}</td>
-          <td>{{ a.classe.nom }}</td>
-          <td class="text-end">{{ bouton_supprimer(url_for('admin.affectation_supprimer', affectation_id=a.id)) }}</td>
-        </tr>
-      {% else %}
-        <tr><td colspan="4" class="text-muted">Aucune affectation.</td></tr>
-      {% endfor %}
-      </tbody>
-    </table>
+  <div class="md:w-7/12">
+    <div class="bg-surface border border-border-subtle rounded-xl overflow-hidden">
+      <table class="w-full zebra-stripe">
+        <thead>
+          <tr class="bg-surface-muted text-label-sm uppercase tracking-wider text-on-surface-variant">
+            <th class="px-4 py-3 text-left font-semibold">Professeur</th>
+            <th class="px-4 py-3 text-left font-semibold">Matière</th>
+            <th class="px-4 py-3 text-left font-semibold">Classe</th>
+            <th class="px-4 py-3 text-left font-semibold"></th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for a in affectations %}
+          <tr>
+            <td class="px-4 py-3">{{ a.professeur.nom }}</td>
+            <td class="px-4 py-3">{{ a.matiere.nom }}</td>
+            <td class="px-4 py-3">{{ a.classe.nom }}</td>
+            <td class="px-4 py-3 text-right">{{ bouton_supprimer(url_for('admin.affectation_supprimer', affectation_id=a.id)) }}</td>
+          </tr>
+        {% else %}
+          <tr><td colspan="4" class="px-4 py-6 text-center text-on-surface-variant italic">Aucune affectation.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 {% endblock %}

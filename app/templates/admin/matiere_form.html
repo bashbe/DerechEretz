@@ -1,13 +1,19 @@
 {% extends "base.html" %}
-{% from "_macros.html" import champ %}
+{% from "_macros.html" import champ, bouton, carte %}
 {% block title %}{{ titre }}{% endblock %}
 {% block content %}
-<h1 class="h3 mb-3">{{ titre }}</h1>
-<form method="post" class="col-md-5">
-  {{ form.hidden_tag() }}
-  {{ champ(form.nom) }}
-  {{ champ(form.coefficient) }}
-  {{ form.submit(class="btn btn-primary") }}
-  <a href="{{ url_for('admin.matieres') }}" class="btn btn-link">Annuler</a>
-</form>
+<h1 class="text-headline-lg mb-4">{{ titre }}</h1>
+<div class="max-w-lg">
+  {% call carte() %}
+  <form method="post">
+    {{ form.hidden_tag() }}
+    {{ champ(form.nom) }}
+    {{ champ(form.coefficient) }}
+    <div class="flex items-center gap-3 mt-2">
+      {{ bouton('Enregistrer', variant='primary', type='submit') }}
+      {{ bouton('Annuler', variant='ghost', href=url_for('admin.matieres')) }}
+    </div>
+  </form>
+  {% endcall %}
+</div>
 {% endblock %}

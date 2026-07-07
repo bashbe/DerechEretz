@@ -1,62 +1,60 @@
-{% macro selecteur_periode(preset, url_base) %}
-  {% set connecteur = '&' if '?' in url_base else '?' %}
-  <div class="btn-group btn-group-sm" role="group" aria-label="Période">
-    {% for code, label in [("mois", "Mois"), ("trimestre", "Trimestre"), ("annee", "Année"), ("cycle", "Cycle")] %}
-      <a href="{{ url_base }}{{ connecteur }}periode={{ code }}"
-         class="btn {{ 'btn-primary' if preset == code else 'btn-outline-secondary' }}">{{ label }}</a>
-    {% endfor %}
-  </div>
+{# Kit de composants Tailwind — voir docs/superpowers/specs/2026-07-06-refonte-visuelle-tailwind-design.md
+   En-tête de tableau : appliquer "bg-surface-muted text-label-sm uppercase tracking-wider
+   text-on-surface-variant" au <thead><tr><th> et la classe "zebra-stripe" au <table>. #}
+
+{% macro bouton(label, variant='primary', type='button', href=None, icone=None, attrs='') %}
+  {% set base = 'inline-flex items-center gap-2 rounded-lg px-4 py-2 text-body-md font-semibold transition-colors' %}
+  {% set variants = {
+    'primary': 'bg-primary text-white hover:bg-primary/90',
+    'ghost': 'border border-primary text-primary bg-transparent hover:bg-primary/5',
+    'danger': 'bg-error text-white hover:bg-error/90',
+    'outline-danger': 'border border-error text-error bg-transparent hover:bg-error/5',
+  } %}
+  {% if href %}
+  <a href="{{ href }}" class="{{ base }} {{ variants.get(variant, variants['primary']) }}" {{ attrs|safe }}>
+    {% if icone %}<span class="material-symbols-outlined text-base">{{ icone }}</span>{% endif %}{{ label }}
+  </a>
+  {% else %}
+  <button type="{{ type }}" class="{{ base }} {{ variants.get(variant, variants['primary']) }}" {{ attrs|safe }}>
+    {% if icone %}<span class="material-symbols-outlined text-base">{{ icone }}</span>{% endif %}{{ label }}
+  </button>
+  {% endif %}
 {% endmacro %}
 
-{% macro navigation_periode(preset, url_base, reference_precedent, reference_suivant) %}
-  {% set connecteur = '&' if '?' in url_base else '?' %}
-  <div class="btn-group btn-group-sm" role="group" aria-label="Navigation période">
-    <a href="{{ url_base }}{{ connecteur }}periode={{ preset }}&reference={{ reference_precedent.isoformat() }}"
-       class="btn btn-outline-secondary" title="Période précédente">&laquo;</a>
-    <a href="{{ url_base }}{{ connecteur }}periode={{ preset }}&reference={{ reference_suivant.isoformat() }}"
-       class="btn btn-outline-secondary" title="Période suivante">&raquo;</a>
-  </div>
+{% macro badge(texte, couleur='neutral') %}
+  {% set couleurs = {
+    'neutral': 'bg-secondary/10 text-secondary',
+    'success': 'bg-success-green/10 text-success-green',
+    'warning': 'bg-warning-amber/20 text-on-surface',
+    'danger': 'bg-error/10 text-error',
+    'primary': 'bg-primary/10 text-primary',
+  } %}
+  <span class="inline-block rounded-full px-3 py-1 text-label-sm normal-case tracking-normal font-semibold {{ couleurs.get(couleur, couleurs['neutral']) }}">{{ texte }}</span>
 {% endmacro %}
 
-{% macro ligne_evenement(vue, montrer_eleve=True) %}
-  {# Rendu commun d'un événement : utilisé par la fiche élève, la liste Vie
-     scolaire et tout futur feed — ne pas dupliquer ce rendu ailleurs. #}
-  <tr style="cursor:pointer"
-      onclick="window.location='{{ url_for('vie_scolaire.evenement_fiche', type_evt=vue.type, evt_id=vue.id) }}'">
-    <td class="text-nowrap">
-      {{ vue.date.strftime('%d/%m/%Y') if vue.date else '—' }}
-      {% if vue.heure %}<small class="text-muted ms-1">{{ vue.heure.strftime('%H:%M') }}</small>{% endif %}
-    </td>
-    {% if montrer_eleve %}
-    <td>
-      {{ vue.eleve.nom_complet }}
-      <small class="text-muted d-block">{{ vue.eleve.classe.nom }}</small>
-    </td>
+{% macro carte(titre=None) %}
+  <div class="bg-surface border border-border-subtle rounded-xl">
+    {% if titre %}
+    <div class="border-b border-border-subtle px-6 py-4 text-headline-md">{{ titre }}</div>
     {% endif %}
-    <td><span class="badge {{ vue.badge }}">{{ vue.libelle_type }}</span></td>
-    <td>
-      {{ vue.resume }}
-      {% if vue.points_deduits %}
-        <small class="text-danger ms-1">−{{ vue.points_deduits }} pt{{ 's' if vue.points_deduits > 1 }}</small>
-      {% endif %}
-      {% if vue.complement %}<br><small class="text-muted">{{ vue.complement }}</small>{% endif %}
-    </td>
-    <td><small class="text-muted">{{ vue.matiere.nom if vue.matiere else '' }}</small></td>
-  </tr>
+    <div class="p-6">
+      {{ caller() }}
+    </div>
+  </div>
 {% endmacro %}
 
 {% macro champ(field) %}
-  <div class="mb-3">
-    {{ field.label(class="form-label") }}
+  <div class="mb-4">
+    {{ field.label(class="block text-label-sm normal-case tracking-normal font-semibold text-on-surface-variant mb-1.5") }}
     {% if field.type == "BooleanField" %}
-      <div class="form-check">
-        {{ field(class="form-check-input") }}
+      <div class="flex items-center gap-2">
+        {{ field(class="rounded border-border-subtle text-primary focus:ring-primary/20") }}
       </div>
     {% else %}
-      {{ field(class="form-control" if field.type not in ["SelectField"] else "form-select") }}
+      {{ field(class="w-full border border-border-subtle rounded-lg px-3 py-2 text-body-md focus:ring-2 focus:ring-primary/20 focus:border-primary") }}
     {% endif %}
     {% if field.errors %}
-      <div class="text-danger small">
+      <div class="text-error text-label-sm normal-case tracking-normal mt-1">
         {% for error in field.errors %}<div>{{ error }}</div>{% endfor %}
       </div>
     {% endif %}
@@ -64,7 +62,59 @@
 {% endmacro %}
 
 {% macro bouton_supprimer(action, label="Supprimer") %}
-  <form method="post" action="{{ action }}" onsubmit="return confirm('Confirmer la suppression ?');" class="d-inline">
-    <button type="submit" class="btn btn-sm btn-outline-danger">{{ label }}</button>
+  <form method="post" action="{{ action }}" onsubmit="return confirm('Confirmer la suppression ?');" class="inline">
+    {{ bouton(label, variant='outline-danger', type='submit', attrs='class="!px-3 !py-1.5 text-body-md"') }}
   </form>
+{% endmacro %}
+
+{% macro selecteur_periode(preset, url_base) %}
+  {% set connecteur = '&' if '?' in url_base else '?' %}
+  <div class="inline-flex rounded-lg border border-border-subtle overflow-hidden" role="group" aria-label="Période">
+    {% for code, label in [("mois", "Mois"), ("trimestre", "Trimestre"), ("annee", "Année"), ("cycle", "Cycle")] %}
+      <a href="{{ url_base }}{{ connecteur }}periode={{ code }}"
+         class="px-3 py-1.5 text-body-md font-semibold border-r border-border-subtle last:border-r-0
+                {{ 'bg-primary text-white' if preset == code else 'bg-surface text-on-surface-variant hover:bg-black/5' }}">{{ label }}</a>
+    {% endfor %}
+  </div>
+{% endmacro %}
+
+{% macro navigation_periode(preset, url_base, reference_precedent, reference_suivant) %}
+  {% set connecteur = '&' if '?' in url_base else '?' %}
+  <div class="inline-flex rounded-lg border border-border-subtle overflow-hidden" role="group" aria-label="Navigation période">
+    <a href="{{ url_base }}{{ connecteur }}periode={{ preset }}&reference={{ reference_precedent.isoformat() }}"
+       class="px-3 py-1.5 border-r border-border-subtle text-on-surface-variant hover:bg-black/5" title="Période précédente">&laquo;</a>
+    <a href="{{ url_base }}{{ connecteur }}periode={{ preset }}&reference={{ reference_suivant.isoformat() }}"
+       class="px-3 py-1.5 text-on-surface-variant hover:bg-black/5" title="Période suivante">&raquo;</a>
+  </div>
+{% endmacro %}
+
+{% macro ligne_evenement(vue, montrer_eleve=True) %}
+  {# Rendu commun d'un événement : utilisé par la fiche élève, la liste Vie
+     scolaire et tout futur feed — ne pas dupliquer ce rendu ailleurs. #}
+  {% set couleurs_type = {
+    'note': 'primary', 'observation': 'neutral', 'infraction_mineure': 'warning', 'infraction_majeure': 'danger',
+  } %}
+  {% set couleur = 'danger' if vue.type == 'presence' and vue.obj.statut == 'absent' else ('warning' if vue.type == 'presence' else couleurs_type.get(vue.type, 'neutral')) %}
+  <tr class="cursor-pointer border-b border-border-subtle last:border-b-0"
+      onclick="window.location='{{ url_for('vie_scolaire.evenement_fiche', type_evt=vue.type, evt_id=vue.id) }}'">
+    <td class="whitespace-nowrap px-4 py-3">
+      {{ vue.date.strftime('%d/%m/%Y') if vue.date else '—' }}
+      {% if vue.heure %}<span class="text-on-surface-variant text-label-sm normal-case tracking-normal ms-1">{{ vue.heure.strftime('%H:%M') }}</span>{% endif %}
+    </td>
+    {% if montrer_eleve %}
+    <td class="px-4 py-3">
+      {{ vue.eleve.nom_complet }}
+      <span class="text-on-surface-variant block text-label-sm normal-case tracking-normal">{{ vue.eleve.classe.nom }}</span>
+    </td>
+    {% endif %}
+    <td class="px-4 py-3">{{ badge(vue.libelle_type, couleur) }}</td>
+    <td class="px-4 py-3">
+      {{ vue.resume }}
+      {% if vue.points_deduits %}
+        <span class="text-error text-label-sm normal-case tracking-normal ms-1">−{{ vue.points_deduits }} pt{{ 's' if vue.points_deduits > 1 }}</span>
+      {% endif %}
+      {% if vue.complement %}<br><span class="text-on-surface-variant text-label-sm normal-case tracking-normal">{{ vue.complement }}</span>{% endif %}
+    </td>
+    <td class="px-4 py-3 text-on-surface-variant text-body-md">{{ vue.matiere.nom if vue.matiere else '' }}</td>
+  </tr>
 {% endmacro %}

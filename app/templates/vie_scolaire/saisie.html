@@ -1,63 +1,63 @@
 {% extends "base.html" %}
+{% from "_macros.html" import bouton, badge %}
 {% block title %}Saisie — {{ controle.intitule }}{% endblock %}
+{% block page_title %}{{ controle.intitule }}{% endblock %}
 {% block content %}
 
-<div class="mb-3">
-  <nav aria-label="breadcrumb">
-    <ol class="breadcrumb mb-1">
-      <li class="breadcrumb-item"><a href="{{ url_for('vie_scolaire.controles') }}">Notes</a></li>
-      <li class="breadcrumb-item active">{{ controle.intitule }}</li>
-    </ol>
+<div class="mb-4">
+  <nav class="text-body-md text-on-surface-variant mb-1">
+    <a href="{{ url_for('vie_scolaire.controles') }}" class="hover:text-primary">Notes</a>
+    <span class="mx-1">/</span>
+    <span>{{ controle.intitule }}</span>
   </nav>
-  <h2 class="mb-0">{{ controle.intitule }}</h2>
-  <small class="text-muted">
+  <div class="text-on-surface-variant text-body-md">
     {{ controle.classe.nom }} · {{ controle.matiere.nom }} · {{ controle.date.strftime('%d/%m/%Y') }} · coef. {{ controle.coefficient }}
     {% if controle.trimestre %} · {{ controle.trimestre.code }}{% endif %}
-  </small>
+  </div>
 </div>
 
 <form method="post">
-  <div class="card mb-3">
-    <div class="card-body p-0">
-      <table class="table table-sm mb-0 grille-saisie">
-        <thead class="table-light">
-          <tr>
-            <th>Élève</th>
-            <th>Note /20</th>
-            <th>Statut</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for eleve in eleves %}
-          {% set note = notes_par_eleve.get(eleve.id) %}
-          <tr>
-            <td>{{ eleve.nom_complet }}</td>
-            <td>
-              <input type="number" name="note_{{ eleve.id }}" class="form-control form-control-sm"
-                     min="0" max="20" step="0.5"
-                     value="{{ note.valeur if note else '' }}"
-                     placeholder="—">
-            </td>
-            <td>
-              {% if note %}
-                <span class="badge
-                  {% if note.valeur < 10 %}bg-danger
-                  {% elif note.valeur >= 14 %}bg-success
-                  {% else %}bg-secondary{% endif %}">
-                  {{ note.valeur }}
-                </span>
+  <div class="bg-surface border border-border-subtle rounded-xl overflow-hidden mb-4">
+    <table class="w-full zebra-stripe grille-saisie">
+      <thead>
+        <tr class="bg-surface-muted text-label-sm uppercase tracking-wider text-on-surface-variant">
+          <th class="px-4 py-3 text-left font-semibold">Élève</th>
+          <th class="px-4 py-3 text-left font-semibold">Note /20</th>
+          <th class="px-4 py-3 text-left font-semibold">Statut</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for eleve in eleves %}
+        {% set note = notes_par_eleve.get(eleve.id) %}
+        <tr class="border-b border-border-subtle last:border-b-0">
+          <td class="px-4 py-2">{{ eleve.nom_complet }}</td>
+          <td class="px-4 py-2">
+            <input type="number" name="note_{{ eleve.id }}" min="0" max="20" step="0.5"
+                   value="{{ note.valeur if note else '' }}" placeholder="—"
+                   class="border border-border-subtle rounded-lg px-2 py-1.5 text-body-md focus:ring-2 focus:ring-primary/20 focus:border-primary">
+          </td>
+          <td class="px-4 py-2">
+            {% if note %}
+              {% if note.valeur < 10 %}
+                {{ badge(note.valeur, 'danger') }}
+              {% elif note.valeur >= 14 %}
+                {{ badge(note.valeur, 'success') }}
               {% else %}
-                <span class="text-muted small">—</span>
+                {{ badge(note.valeur, 'neutral') }}
               {% endif %}
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
+            {% else %}
+              <span class="text-on-surface-variant text-body-md">—</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
-  <button type="submit" class="btn btn-primary">Enregistrer les notes</button>
-  <a href="{{ url_for('vie_scolaire.controles') }}" class="btn btn-outline-secondary ms-2">Retour</a>
+  <div class="flex gap-2">
+    {{ bouton('Enregistrer les notes', variant='primary', type='submit') }}
+    {{ bouton('Retour', variant='ghost', href=url_for('vie_scolaire.controles')) }}
+  </div>
 </form>
 
 {% endblock %}

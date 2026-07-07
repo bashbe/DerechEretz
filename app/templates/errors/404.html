@@ -1,8 +1,10 @@
 {% extends "base.html" %}
+{% from "_macros.html" import bouton %}
 {% block title %}Page introuvable{% endblock %}
 {% block content %}
-<div class="text-center mt-5">
-  <h1 class="h3">Page introuvable</h1>
-  <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary">Retour au tableau de bord</a>
+<div class="text-center py-24">
+  <h1 class="text-headline-xl mb-2">Page introuvable</h1>
+  <p class="text-on-surface-variant mb-6">La page que vous cherchez n'existe pas ou plus.</p>
+  {{ bouton('Retour au tableau de bord', variant='primary', href=url_for('main.dashboard')) }}
 </div>
 {% endblock %}

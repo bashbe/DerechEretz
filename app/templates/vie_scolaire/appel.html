@@ -1,34 +1,35 @@
 {% extends "base.html" %}
+{% from "_macros.html" import bouton %}
 {% block title %}Appel{% endblock %}
+{% block page_title %}Appel{% endblock %}
 {% block content %}
 
-<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+<div class="flex justify-between items-center mb-4 flex-wrap gap-3">
   <div>
-    <nav aria-label="breadcrumb">
-      <ol class="breadcrumb mb-1">
-        <li class="breadcrumb-item"><a href="{{ url_for('vie_scolaire.index') }}">Vie scolaire</a></li>
-        <li class="breadcrumb-item active">Appel du jour</li>
-      </ol>
+    <nav class="text-body-md text-on-surface-variant mb-1">
+      <a href="{{ url_for('vie_scolaire.index') }}" class="hover:text-primary">Vie scolaire</a>
+      <span class="mx-1">/</span>
+      <span>Appel du jour</span>
     </nav>
-    <h2 class="mb-0">Appel</h2>
   </div>
 </div>
 
 {# Sélecteurs classe + date #}
-<form class="row g-2 mb-4 align-items-end" method="get">
-  <div class="col-auto">
-    <label class="form-label small fw-semibold">Classe</label>
-    <select name="classe_id" class="form-select form-select-sm" onchange="this.form.submit()">
+<form class="flex gap-3 mb-4 items-end flex-wrap" method="get">
+  <div>
+    <label class="block text-label-sm normal-case tracking-normal font-semibold text-on-surface-variant mb-1.5">Classe</label>
+    <select name="classe_id" onchange="this.form.submit()"
+            class="border border-border-subtle rounded-lg px-3 py-2 text-body-md focus:ring-2 focus:ring-primary/20 focus:border-primary">
       <option value="">Choisir une classe…</option>
       {% for c in classes %}
         <option value="{{ c.id }}" {% if classe_id == c.id %}selected{% endif %}>{{ c.nom }}</option>
       {% endfor %}
     </select>
   </div>
-  <div class="col-auto">
-    <label class="form-label small fw-semibold">Date</label>
-    <input type="date" name="date" class="form-control form-control-sm"
-           value="{{ date_appel.isoformat() }}" onchange="this.form.submit()">
+  <div>
+    <label class="block text-label-sm normal-case tracking-normal font-semibold text-on-surface-variant mb-1.5">Date</label>
+    <input type="date" name="date" value="{{ date_appel.isoformat() }}" onchange="this.form.submit()"
+           class="border border-border-subtle rounded-lg px-3 py-2 text-body-md focus:ring-2 focus:ring-primary/20 focus:border-primary">
   </div>
 </form>
 
@@ -37,59 +38,66 @@
   <input type="hidden" name="classe_id" value="{{ classe.id }}">
   <input type="hidden" name="date" value="{{ date_appel.isoformat() }}">
 
-  <div class="card mb-3">
-    <div class="card-header fw-semibold">
+  <div class="bg-surface border border-border-subtle rounded-xl overflow-hidden mb-4">
+    <div class="border-b border-border-subtle px-6 py-4 text-headline-md">
       {{ classe.nom }} — {{ date_appel.strftime('%A %d %B %Y') }}
     </div>
-    <div class="card-body p-0">
-      <table class="table table-sm mb-0 grille-saisie">
-        <thead class="table-light">
-          <tr>
-            <th>Élève</th>
-            <th>Statut</th>
-            <th>Heure d'arrivée</th>
-            <th>Justifié</th>
-            <th>Motif</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for eleve in eleves %}
-          {% set p = presences_par_eleve.get(eleve.id) %}
-          <tr>
-            <td>{{ eleve.nom_complet }}</td>
-            <td>
-              <select name="statut_{{ eleve.id }}" class="form-select form-select-sm">
-                <option value="">—</option>
-                {% for val, label in [("present","Présent"),("absent","Absent"),("retard","Retard")] %}
-                  <option value="{{ val }}" {{ 'selected' if p and p.statut == val }}>{{ label }}</option>
-                {% endfor %}
-              </select>
-            </td>
-            <td>
-              <input type="time" name="heure_{{ eleve.id }}" class="form-control form-control-sm"
-                     value="{{ p.heure_arrivee.strftime('%H:%M') if p and p.heure_arrivee else '' }}">
-            </td>
-            <td class="text-center">
-              <input type="checkbox" name="justifie_{{ eleve.id }}" value="1" class="form-check-input"
-                     {{ 'checked' if p and p.justifie }}>
-            </td>
-            <td>
-              <input type="text" name="motif_{{ eleve.id }}" class="form-control form-control-sm"
-                     value="{{ p.motif or '' }}" placeholder="Motif (optionnel)">
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
+    <table class="w-full zebra-stripe grille-saisie">
+      <thead>
+        <tr class="bg-surface-muted text-label-sm uppercase tracking-wider text-on-surface-variant">
+          <th class="px-4 py-3 text-left font-semibold">Élève</th>
+          <th class="px-4 py-3 text-left font-semibold">Statut</th>
+          <th class="px-4 py-3 text-left font-semibold">Heure d'arrivée</th>
+          <th class="px-4 py-3 text-center font-semibold">Justifié</th>
+          <th class="px-4 py-3 text-left font-semibold">Motif</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for eleve in eleves %}
+        {% set p = presences_par_eleve.get(eleve.id) %}
+        <tr class="border-b border-border-subtle last:border-b-0">
+          <td class="px-4 py-2">{{ eleve.nom_complet }}</td>
+          <td class="px-4 py-2">
+            <select name="statut_{{ eleve.id }}"
+                    class="border border-border-subtle rounded-lg px-2 py-1.5 text-body-md focus:ring-2 focus:ring-primary/20 focus:border-primary">
+              <option value="">—</option>
+              {% for val, label in [("present","Présent"),("absent","Absent"),("retard","Retard")] %}
+                <option value="{{ val }}" {{ 'selected' if p and p.statut == val }}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </td>
+          <td class="px-4 py-2">
+            <input type="time" name="heure_{{ eleve.id }}"
+                   value="{{ p.heure_arrivee.strftime('%H:%M') if p and p.heure_arrivee else '' }}"
+                   class="border border-border-subtle rounded-lg px-2 py-1.5 text-body-md focus:ring-2 focus:ring-primary/20 focus:border-primary">
+          </td>
+          <td class="px-4 py-2 text-center">
+            <input type="checkbox" name="justifie_{{ eleve.id }}" value="1"
+                   class="rounded border-border-subtle text-primary focus:ring-primary/20"
+                   {{ 'checked' if p and p.justifie }}>
+          </td>
+          <td class="px-4 py-2">
+            <input type="text" name="motif_{{ eleve.id }}" value="{{ p.motif or '' }}" placeholder="Motif (optionnel)"
+                   class="w-full border border-border-subtle rounded-lg px-2 py-1.5 text-body-md focus:ring-2 focus:ring-primary/20 focus:border-primary">
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
-  <button type="submit" class="btn btn-primary">Enregistrer l'appel</button>
-  <a href="{{ url_for('vie_scolaire.index') }}" class="btn btn-outline-secondary ms-2">Annuler</a>
+  <div class="flex gap-2">
+    {{ bouton("Enregistrer l'appel", variant='primary', type='submit') }}
+    {{ bouton('Annuler', variant='ghost', href=url_for('vie_scolaire.index')) }}
+  </div>
 </form>
 {% elif classe %}
-<div class="alert alert-warning">Cette classe n'a aucun élève.</div>
+<div class="bg-surface border border-border-subtle rounded-xl text-center text-on-surface-variant py-16">
+  Cette classe n'a aucun élève.
+</div>
 {% else %}
-<div class="text-muted fst-italic">Sélectionnez une classe pour faire l'appel.</div>
+<div class="bg-surface border border-border-subtle rounded-xl text-center text-on-surface-variant py-16">
+  Sélectionnez une classe pour faire l'appel.
+</div>
 {% endif %}
 
 {% endblock %}
