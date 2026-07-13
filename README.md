@@ -110,15 +110,21 @@ Puis ouvrir http://127.0.0.1:5000 et se connecter avec le compte créé.
 
 ---
 
-## Mode démonstration (sous-domaine séparé)
+## Mode démonstration (sous-domaine ou /demo)
 
-L'application peut servir des **données 100 % fictives** (3 classes de 20 élèves) sur un
-sous-domaine dédié, sans jamais toucher à la base réelle. Quand une requête arrive avec un nom
-d'hôte dont le premier label vaut `demo` (ex. `demo.mon-ecole.fr`), toute la session bascule
-automatiquement sur une seconde base de données (`demo.db` par défaut, configurable via
-`DEMO_DATABASE_URL`) et le visiteur est connecté sans identifiants avec un compte directeur de
-démo. Aucune route n'a besoin d'être adaptée : le même code sert simplement une autre base selon
-le nom d'hôte (voir `app/demo.py` et `app/extensions.py`).
+L'application peut servir des **données 100 % fictives** (3 classes de 20 élèves) sans jamais
+toucher à la base réelle, accessible de deux façons :
+
+1. **Sous-domaine** : toute requête dont le premier label du nom d'hôte vaut `demo` (ex.
+   `demo.mon-ecole.fr`) bascule automatiquement sur une seconde base de données (`demo.db` par
+   défaut, configurable via `DEMO_DATABASE_URL`).
+2. **Chemin `/demo`** : pratique quand le sous-domaine n'est pas configurable (hébergement sans
+   accès DNS, test local sans entrée `/etc/hosts`...). `run.py` monte une seconde instance de
+   l'app, forcée en mode démo, sous le préfixe `/demo` (voir `config.DemoConfig`).
+
+Dans les deux cas, le visiteur est connecté sans identifiants avec un compte directeur de démo, et
+aucune route n'a besoin d'être adaptée : le même code sert simplement une autre base selon le nom
+d'hôte ou le préfixe de chemin (voir `app/demo.py` et `app/extensions.py`).
 
 ```bash
 flask seed-demo            # peuple la base de démo (une fois)
@@ -129,7 +135,12 @@ Variables d'environnement optionnelles :
 - `DEMO_SUBDOMAIN` (défaut `demo`) : premier label du nom d'hôte qui déclenche le mode démo
 - `DEMO_DATABASE_URL` (défaut `sqlite:///demo.db`) : base physiquement distincte de la production
 
-En local, tester avec `http://demo.localhost:5000` (ou l'en-tête `Host: demo.<domaine>`).
+En local, après `python run.py`, deux options :
+- `http://127.0.0.1:5000/demo` (ne nécessite aucune config DNS)
+- `http://demo.localhost:5000` (si votre navigateur/OS résout les sous-domaines `.localhost`)
+
+> `python run.py` doit être utilisé pour profiter du montage `/demo` (il ne fonctionne pas avec
+> `flask run`, qui ne sert que l'app principale).
 
 ---
 
