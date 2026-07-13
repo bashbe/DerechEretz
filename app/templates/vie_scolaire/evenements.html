@@ -61,6 +61,7 @@
 
 {% if vues %}
 <div class="bg-surface border border-border-subtle rounded-xl overflow-hidden">
+  <div class="overflow-x-auto">
   <table class="w-full zebra-stripe">
     <thead>
       <tr class="bg-surface-muted text-label-sm uppercase tracking-wider text-on-surface-variant">
@@ -77,6 +78,7 @@
       {% endfor %}
     </tbody>
   </table>
+  </div>
 </div>
 <p class="text-on-surface-variant text-body-md mt-2">Cliquez sur une ligne pour ouvrir la fiche de l'événement.</p>
 {% else %}

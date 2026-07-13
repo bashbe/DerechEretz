@@ -2,13 +2,14 @@
 {% from "_macros.html" import bouton, badge %}
 {% block title %}Cycles de discipline{% endblock %}
 {% block content %}
-<div class="flex justify-between items-center mb-4">
+<div class="flex flex-wrap justify-between items-center gap-3 mb-4">
   <h1 class="text-headline-lg">Cycles de discipline (15 jours)</h1>
   <form method="post" action="{{ url_for('admin.cycle_nouveau') }}">
     {{ bouton('+ Nouveau cycle', variant='primary', type='submit') }}
   </form>
 </div>
 <div class="bg-surface border border-border-subtle rounded-xl overflow-hidden">
+  <div class="overflow-x-auto">
   <table class="w-full zebra-stripe">
     <thead>
       <tr class="bg-surface-muted text-label-sm uppercase tracking-wider text-on-surface-variant">
@@ -46,5 +47,6 @@
     {% endfor %}
     </tbody>
   </table>
+  </div>
 </div>
 {% endblock %}

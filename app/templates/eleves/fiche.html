@@ -96,6 +96,7 @@
       </span>
     </div>
     {% if matieres %}
+    <div class="overflow-x-auto">
     <table class="w-full zebra-stripe">
       <tbody>
         {% for m in matieres %}
@@ -125,6 +126,7 @@
         {% endif %}
       </tbody>
     </table>
+    </div>
     {% else %}
     <p class="text-on-surface-variant p-6 italic">Aucune matière affectée.</p>
     {% endif %}
@@ -143,6 +145,7 @@
     </a>
   </div>
   {% if activites %}
+  <div class="overflow-x-auto">
   <table class="w-full zebra-stripe">
     <thead>
       <tr class="bg-surface-muted text-label-sm uppercase tracking-wider text-on-surface-variant">
@@ -158,6 +161,7 @@
       {% endfor %}
     </tbody>
   </table>
+  </div>
   {% else %}
   <div class="text-center text-on-surface-variant py-10">
     Aucune activité sur cette période.
