@@ -110,6 +110,29 @@ Puis ouvrir http://127.0.0.1:5000 et se connecter avec le compte créé.
 
 ---
 
+## Mode démonstration (sous-domaine séparé)
+
+L'application peut servir des **données 100 % fictives** (3 classes de 20 élèves) sur un
+sous-domaine dédié, sans jamais toucher à la base réelle. Quand une requête arrive avec un nom
+d'hôte dont le premier label vaut `demo` (ex. `demo.mon-ecole.fr`), toute la session bascule
+automatiquement sur une seconde base de données (`demo.db` par défaut, configurable via
+`DEMO_DATABASE_URL`) et le visiteur est connecté sans identifiants avec un compte directeur de
+démo. Aucune route n'a besoin d'être adaptée : le même code sert simplement une autre base selon
+le nom d'hôte (voir `app/demo.py` et `app/extensions.py`).
+
+```bash
+flask seed-demo            # peuple la base de démo (une fois)
+flask seed-demo --reset    # efface et régénère entièrement la démo
+```
+
+Variables d'environnement optionnelles :
+- `DEMO_SUBDOMAIN` (défaut `demo`) : premier label du nom d'hôte qui déclenche le mode démo
+- `DEMO_DATABASE_URL` (défaut `sqlite:///demo.db`) : base physiquement distincte de la production
+
+En local, tester avec `http://demo.localhost:5000` (ou l'en-tête `Host: demo.<domaine>`).
+
+---
+
 ## Tests
 
 ```bash

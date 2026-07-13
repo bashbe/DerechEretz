@@ -1,6 +1,8 @@
 venv/
+.venv/
 __pycache__/
 *.pyc
 instance/
 ecole.db
+demo.db
 .env

@@ -65,3 +65,28 @@ def register_cli(app):
             click.echo("")
             click.echo("La base est vierge. Créez un compte directeur :")
             click.echo("  flask seed-directeur <email> <motdepasse>")
+
+    @app.cli.command("seed-demo")
+    @click.option(
+        "--reset",
+        is_flag=True,
+        help="Efface et régénère entièrement la base de démo, même si elle est déjà peuplée.",
+    )
+    def seed_demo(reset):
+        """Peuple la base de démonstration (3 classes de 20 élèves fictifs).
+
+        N'affecte jamais la base réelle : ces données ne sont visibles que
+        sur le sous-domaine de démo (config DEMO_SUBDOMAIN, "demo" par défaut).
+        """
+        from app.demo import DEMO_DIRECTEUR_EMAIL, DEMO_PASSWORD, seed_demo_data
+
+        cree = seed_demo_data(app, reset=reset)
+        if not cree:
+            click.echo("La base de démo est déjà peuplée (utilisez --reset pour la régénérer).")
+            return
+        click.echo("✓ Base de démo peuplée : 3 classes, 60 élèves fictifs.")
+        click.echo(f"  Compte directeur démo : {DEMO_DIRECTEUR_EMAIL} / {DEMO_PASSWORD}")
+        click.echo(
+            f"  (accès automatique, sans connexion, via le sous-domaine "
+            f"{app.config.get('DEMO_SUBDOMAIN', 'demo')}.<votre-domaine>)"
+        )
