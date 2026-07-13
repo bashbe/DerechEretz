@@ -20,7 +20,7 @@
         <input type="text" name="intitule" required placeholder="ex : Contrôle chapitre 3"
                class="w-full border border-border-subtle rounded-lg px-3 py-2 text-body-md focus:ring-2 focus:ring-primary/20 focus:border-primary">
       </div>
-      <div class="grid grid-cols-2 gap-4 mb-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
         <div>
           <label class="block text-label-sm normal-case tracking-normal font-semibold text-on-surface-variant mb-1.5">Classe</label>
           <select name="classe_id" required
@@ -42,7 +42,7 @@
           </select>
         </div>
       </div>
-      <div class="grid grid-cols-2 gap-4 mb-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
         <div>
           <label class="block text-label-sm normal-case tracking-normal font-semibold text-on-surface-variant mb-1.5">Date</label>
           <input type="date" name="date" value="{{ today }}" required

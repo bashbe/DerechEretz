@@ -140,6 +140,7 @@
 <h2 class="text-headline-md mb-3">Historique des rapports générés</h2>
 {% if rapports %}
 <div class="bg-surface border border-border-subtle rounded-xl overflow-hidden">
+  <div class="overflow-x-auto">
   <table class="w-full zebra-stripe">
     <thead>
       <tr class="bg-surface-muted text-label-sm uppercase tracking-wider text-on-surface-variant">
@@ -183,6 +184,7 @@
       {% endfor %}
     </tbody>
   </table>
+  </div>
 </div>
 {% else %}
 <div class="text-on-surface-variant italic">Aucun rapport généré pour l'instant.</div>
