@@ -1,5 +1,10 @@
+from werkzeug.middleware.dispatcher import DispatcherMiddleware
+from werkzeug.test import Client
+
+from app import create_app
 from app.demo import DEMO_DIRECTEUR_EMAIL, seed_demo_data
 from app.models import Classe, Eleve
+from config import TestConfig
 
 
 def test_seed_demo_data_ne_touche_pas_la_base_reelle(app):
@@ -48,6 +53,39 @@ def test_sous_domaine_demo_isole_et_autologin(app):
     tableau = client.get(demo.headers["Location"], headers={"Host": "demo.mon-ecole.test"})
     assert tableau.status_code == 200
     assert "Mode démonstration" in tableau.get_data(as_text=True)
+
+
+def test_demo_accessible_via_prefixe_chemin_demo(tmp_path):
+    """Pour les hébergements sans sous-domaine configurable, /demo doit servir
+    exactement la même démo (mêmes routes, liens toujours préfixés /demo)."""
+    demo_db_uri = f"sqlite:///{tmp_path / 'demo_test.db'}"
+
+    class RealConfig(TestConfig):
+        SQLALCHEMY_BINDS = {"demo": demo_db_uri}
+
+    class DemoPathConfig(TestConfig):
+        FORCE_DEMO_MODE = True
+        SQLALCHEMY_BINDS = {"demo": demo_db_uri}
+
+    real_app = create_app(RealConfig)
+    demo_app = create_app(DemoPathConfig)
+    seed_demo_data(real_app)
+
+    client = Client(DispatcherMiddleware(real_app, {"/demo": demo_app}))
+
+    reel = client.get("/")
+    assert reel.status_code == 302
+    assert "/login" in reel.headers["Location"]
+
+    demo = client.get("/demo/")
+    assert demo.status_code == 302
+    assert demo.headers["Location"] == "/demo/tableau-de-bord"
+
+    tableau = client.get(demo.headers["Location"])
+    assert tableau.status_code == 200
+    body = tableau.get_data(as_text=True)
+    assert "Mode démonstration" in body
+    assert 'href="/demo/eleves"' in body
 
 
 def test_compte_demo_directeur_existe(app):

@@ -106,7 +106,9 @@ def register_demo(app):
 
     @app.before_request
     def _detecter_demo_et_connecter():
-        g.is_demo = _est_sous_domaine_demo(app, request.host)
+        g.is_demo = app.config.get("FORCE_DEMO_MODE", False) or _est_sous_domaine_demo(
+            app, request.host
+        )
         if g.is_demo and not current_user.is_authenticated:
             demo_user = User.query.filter_by(email=DEMO_DIRECTEUR_EMAIL).first()
             if demo_user is not None:
