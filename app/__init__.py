@@ -36,6 +36,10 @@ def create_app(config_class=Config):
 
     register_cli(app)
 
+    from app.demo import register_demo
+
+    register_demo(app)
+
     from app.errors import register_error_handlers
 
     register_error_handlers(app)

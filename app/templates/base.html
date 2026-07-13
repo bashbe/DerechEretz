@@ -58,6 +58,11 @@
   </style>
 </head>
 <body class="bg-surface text-on-surface text-body-md antialiased">
+  {% if g.get('is_demo') %}
+  <div class="sticky top-0 z-50 bg-warning-amber/90 text-on-surface text-body-md font-semibold text-center py-1.5 px-4">
+    Mode démonstration — données fictives, sans rapport avec un établissement réel
+  </div>
+  {% endif %}
   {% if current_user.is_authenticated %}
 
   {# Overlay mobile #}
